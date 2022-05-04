@@ -22,6 +22,7 @@
  */
 
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
+import org.noelware.ktor.gradle.VERSION
 
 plugins {
     id("org.jetbrains.dokka")
@@ -30,7 +31,7 @@ plugins {
 
 val DOKKA_OUTPUT = "${rootProject.projectDir}/docs"
 group = "org.noelware"
-version = "?"
+version = "$VERSION"
 
 repositories {
     mavenCentral()

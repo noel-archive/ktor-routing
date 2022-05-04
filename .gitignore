@@ -617,6 +617,7 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
+.gradle
 !gradle/wrapper/*.jar
 !gradle/publishing.example.properties
 gradle/publishing.properties
