@@ -41,3 +41,12 @@ dependencies {
     implementation("dev.floofy.commons:gradle:2.1.0")
     implementation(gradleApi())
 }
+
+// This is here so we do get the following warning:
+// > Task :buildSrc:compileKotlin
+// 'compileJava' task (current target is 17) and 'compileKotlin' task (current target is 1.8) jvm target compatibility should be set to the same Java version.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+}
