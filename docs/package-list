@@ -1,0 +1,11 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+module:core
+org.noelware.ktor
+org.noelware.ktor.annotations
+org.noelware.ktor.loader
+module:loader-koin
+org.noelware.ktor.loader.koin
+module:loader-reflection
+org.noelware.ktor.loader.reflections
