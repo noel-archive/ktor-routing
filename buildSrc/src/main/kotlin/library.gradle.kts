@@ -91,7 +91,7 @@ tasks {
             configureEach {
                 platform.set(org.jetbrains.dokka.Platform.jvm)
                 jdkVersion.set(17)
-                includes.from("DokkaDescription.md")
+                //includes.from("DokkaDescription.md")
 
                 sourceLink {
                     localDirectory.set(file("src/main/kotlin"))
