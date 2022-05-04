@@ -23,7 +23,7 @@
 
 package org.noelware.ktor.loader
 
-import org.noelware.ktor.AbstractEndpoint
+import org.noelware.ktor.endpoints.AbstractEndpoint
 
 /**
  * Represents a generic endpoint loader to implement with the `loader-` packages.

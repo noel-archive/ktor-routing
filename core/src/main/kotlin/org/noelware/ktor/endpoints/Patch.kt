@@ -21,12 +21,12 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor.annotations
+package org.noelware.ktor.endpoints
 
 /**
- * Represents a GET request that can be accessed.
+ * Represents a PATCH request that can be accessed.
  */
-annotation class Get(
+annotation class Patch(
     /**
      * The path that is used to identify this endpoint.
      */

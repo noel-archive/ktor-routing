@@ -21,12 +21,12 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor.annotations
+package org.noelware.ktor.endpoints
 
 /**
- * Represents a PATCH request that can be accessed.
+ * Represents a POST request that can be accessed.
  */
-annotation class Patch(
+annotation class Post(
     /**
      * The path that is used to identify this endpoint.
      */

@@ -25,7 +25,7 @@ package org.noelware.ktor.loader.koin
 
 import dev.floofy.utils.koin.retrieveAll
 import org.koin.core.context.GlobalContext
-import org.noelware.ktor.AbstractEndpoint
+import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 
 /**

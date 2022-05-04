@@ -21,14 +21,20 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor.annotations
+package org.noelware.ktor.endpoints
 
 /**
- * Represents a POST request that can be accessed.
+ * Represents a generic HTTP annotation, used for multiple methods
+ * put together into one method.
  */
-annotation class Post(
+annotation class Http(
     /**
      * The path that is used to identify this endpoint.
      */
-    val path: String = "/"
+    val path: String = "/",
+
+    /**
+     * List of methods by their name to identify this endpoint.
+     */
+    val methods: Array<String> = []
 )

@@ -23,7 +23,7 @@
 
 package org.noelware.ktor.loader.reflections
 
-import org.noelware.ktor.AbstractEndpoint
+import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 import org.reflections.Reflections
 import org.reflections.util.ConfigurationBuilder

@@ -21,12 +21,11 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor
+package org.noelware.ktor.endpoints
 
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
-import org.noelware.ktor.annotations.*
 import org.slf4j.LoggerFactory
 import kotlin.reflect.KCallable
 import kotlin.reflect.full.findAnnotation

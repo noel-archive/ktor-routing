@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor.annotations
+package org.noelware.ktor.endpoints
 
 /**
  * Represents a DELETE request that can be accessed.

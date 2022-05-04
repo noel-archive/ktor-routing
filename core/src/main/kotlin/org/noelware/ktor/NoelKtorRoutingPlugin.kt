@@ -26,6 +26,7 @@ package org.noelware.ktor
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 import org.slf4j.LoggerFactory
 import kotlin.reflect.full.callSuspend
