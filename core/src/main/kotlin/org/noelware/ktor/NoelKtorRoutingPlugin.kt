@@ -23,11 +23,13 @@
 
 package org.noelware.ktor
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
+import org.noelware.ktor.loader.ListBasedLoader
 import org.slf4j.LoggerFactory
 import kotlin.reflect.full.callSuspend
 
@@ -68,22 +70,37 @@ val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = cre
     val log = LoggerFactory.getLogger("org.noelware.ktor.NoelKtorRoutingPluginKt")
     val endpointsMap = pluginConfig.endpoints
     val loader = if (pluginConfig.endpointLoader == null) {
-        object: IEndpointLoader {
-            override fun load(): List<AbstractEndpoint> = endpointsMap
-        }
+        ListBasedLoader(endpointsMap)
     } else {
         pluginConfig.endpointLoader!!
     }
 
-    val newEndpointMap = endpointsMap + loader.load()
+    val newEndpointMap = loader.load()
+    val alreadyRegistered = mutableListOf<Pair<String, HttpMethod>>()
     log.debug("Registering ${newEndpointMap.size} endpoints!")
 
     for (endpoint in newEndpointMap) {
         for ((path, method, callable) in endpoint.routes) {
             routing.route(path, method) {
+                log.debug("Registering route ${method.value} $path!")
+
+                val keyPair = Pair(path, method)
+                if (alreadyRegistered.contains(keyPair)) {
+                    log.debug("Route ${method.value} $path is already registered, skipping.")
+                    return@route
+                }
+
+                alreadyRegistered.add(keyPair)
+
                 // Install all the global scoped plugins for this route.
                 for ((plugin, configure) in endpoint.plugins) {
-                    log.debug("Installed global-scoped plugin $plugin onto route $path")
+                    log.debug("Installed global-scoped plugin ${plugin.key.name} onto route $path")
+
+                    if (pluginRegistry.contains(plugin.key)) {
+                        log.warn("Plugin ${plugin.key.name} is already registered on route, skipping!")
+                        continue
+                    }
+
                     install(plugin, configure)
                 }
 
@@ -91,6 +108,11 @@ val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = cre
                 val plugins = endpoint.specificPlugins.filter { it.first == path }
                 for ((_, plugin, configure) in plugins) {
                     log.debug("Installed local-scoped plugin $plugin onto route $path")
+                    if (pluginRegistry.contains(plugin.key)) {
+                        log.warn("Plugin ${plugin.key.name} is already registered on route, skipping!")
+                        continue
+                    }
+
                     install(plugin, configure)
                 }
 

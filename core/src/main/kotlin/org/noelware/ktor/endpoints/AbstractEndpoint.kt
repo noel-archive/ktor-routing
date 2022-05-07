@@ -78,7 +78,7 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route PUT $p")
 
-            routes.add(Triple(p, HttpMethod.Get, method))
+            routes.add(Triple(p, HttpMethod.Put, method))
         }
 
         for (method in postMethods) {
@@ -86,7 +86,7 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route POST $p")
 
-            routes.add(Triple(p, HttpMethod.Get, method))
+            routes.add(Triple(p, HttpMethod.Post, method))
         }
 
         for (method in deleteMethods) {
@@ -94,7 +94,7 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route DELETE $p")
 
-            routes.add(Triple(p, HttpMethod.Get, method))
+            routes.add(Triple(p, HttpMethod.Delete, method))
         }
 
         for (method in patchMethods) {
@@ -102,7 +102,7 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route PATCH $p")
 
-            routes.add(Triple(p, HttpMethod.Get, method))
+            routes.add(Triple(p, HttpMethod.Patch, method))
         }
     }
 
@@ -116,8 +116,8 @@ open class AbstractEndpoint(val path: String = "/") {
      * @param configure The configuration block to configure this [plugin].
      * @return this [AbstractEndpoint] to chain methods.
      */
-    fun <C: Any, B: Any> install(plugin: Plugin<Route, C, B>, configure: C.() -> Unit): AbstractEndpoint {
-        log.debug("Installing plugin $plugin to every route.")
+    fun <C: Any, B: Any> install(plugin: Plugin<Route, C, B>, configure: C.() -> Unit = {}): AbstractEndpoint {
+        log.debug("Initialized plugin ${plugin.key.name} to every route.")
 
         @Suppress("UNCHECKED_CAST")
         plugins.add(Pair(plugin, configure as Any.() -> Unit))
@@ -131,15 +131,17 @@ open class AbstractEndpoint(val path: String = "/") {
      * @param configure The configuration block to configure this [plugin].
      * @return this [AbstractEndpoint] to chain methods.
      */
-    fun <C: Any, B: Any> install(route: String, plugin: Plugin<Route, C, B>, configure: C.() -> Unit): AbstractEndpoint {
-        log.debug("Installing plugin $plugin into route $route!")
+    fun <C: Any, B: Any> install(route: String, plugin: Plugin<Route, C, B>, configure: C.() -> Unit = {}): AbstractEndpoint {
+        log.debug("Initialized plugin ${plugin.key.name} on route $route")
 
         @Suppress("UNCHECKED_CAST")
-        specificPlugins.add(Triple(
-            route,
-            plugin,
-            configure as Any.() -> Unit
-        ))
+        specificPlugins.add(
+            Triple(
+                route,
+                plugin,
+                configure as Any.() -> Unit
+            )
+        )
 
         return this
     }

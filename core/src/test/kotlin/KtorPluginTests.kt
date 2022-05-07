@@ -25,6 +25,9 @@
 
 package org.noelware.ktor.tests
 
+import dev.floofy.utils.slf4j.logging
+import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.assertions.ktor.client.shouldNotHaveStatus
 import io.kotest.assertions.throwables.shouldNotThrow
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
@@ -32,13 +35,22 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.noelware.ktor.NoelKtorRoutingPlugin
+import org.noelware.ktor.body
+import org.noelware.ktor.endpoints.AbstractEndpoint
+import org.noelware.ktor.endpoints.Get
+import org.noelware.ktor.endpoints.Post
 import owo.da.uwu.*
 
 class KtorPluginTests: DescribeSpec({
+    val log by logging<KtorPluginTests>()
+
     describe("org.noelware.ktor.tests.KtorPluginTests") {
-        it("should throw a error if `routing` plugin was not initialized") {
+        it("should throw an error if the `routing` plguin was not initialized.") {
             val exception = shouldThrow<IllegalStateException> {
                 testApplication {
                     install(NoelKtorRoutingPlugin)
@@ -48,27 +60,66 @@ class KtorPluginTests: DescribeSpec({
             exception.message shouldBe "Missing `routing {}` plugin in application module"
         }
 
-        it("should not throw an error if `routing` plugin WAS initialized") {
+        it("should not throw an error if it was initialized") {
             shouldNotThrow<IllegalStateException> {
                 testApplication {
-                    routing {}
+                    install(Routing)
                     install(NoelKtorRoutingPlugin)
                 }
             }
         }
 
-        it("should be able to run `GET /`") {
+        it("should run `GET /`, `GET /api`, and `POST /api/uwu`") {
             testApplication {
-                routing {}
+                install(Routing)
                 install(NoelKtorRoutingPlugin) {
-                    endpoints(OtherEndpoint())
+                    endpoints(
+                        OtherEndpoint(),
+                        object: AbstractEndpoint("/api") {
+                            init {
+                                val globalScopedPlugin = createRouteScopedPlugin("owo da uwu") {
+                                    onCall { log.debug("global!") }
+                                }
+
+                                val localScopedPlugin = createRouteScopedPlugin("uwu da owo") {
+                                    onCall { log.debug("local") }
+                                }
+
+                                install("/api/uwu", localScopedPlugin)
+                                install(globalScopedPlugin)
+                            }
+
+                            @Get
+                            suspend fun main(call: ApplicationCall) {
+                                call.respond(HttpStatusCode.OK, "hello world!")
+                            }
+
+                            @Post("/uwu")
+                            suspend fun uwu(call: ApplicationCall) {
+                                val body by call.body<String>()
+                                call.respond(HttpStatusCode.OK, body)
+                            }
+                        }
+                    )
                 }
 
-                val client = createClient {}
-                val res = client.get("/")
+                val res1 = client.get("/")
+                res1 shouldHaveStatus HttpStatusCode.OK
+                res1 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res1.body<String>() shouldBe "hewo world"
 
-                res.body<String>() shouldBe "hewo world"
-                res.status shouldBe HttpStatusCode.OK
+                val res2 = client.get("/api")
+                res2 shouldHaveStatus HttpStatusCode.OK
+                res2 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res2.body<String>() shouldBe "hello world!"
+
+                val res3 = client.post("/api/uwu") {
+                    setBody("owo da uwu")
+                }
+
+                res3 shouldHaveStatus HttpStatusCode.OK
+                res3 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res3.body<String>() shouldBe "owo da uwu"
             }
         }
     }
