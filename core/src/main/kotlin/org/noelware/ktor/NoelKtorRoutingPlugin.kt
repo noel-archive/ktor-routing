@@ -81,7 +81,16 @@ val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = cre
     for (endpoint in newEndpointMap) {
         for ((path, method, callable) in endpoint.routes) {
             routing.route(path, method) {
+                // Install all the global scoped plugins for this route.
                 for ((plugin, configure) in endpoint.plugins) {
+                    log.debug("Installed global-scoped plugin $plugin onto route $path")
+                    install(plugin, configure)
+                }
+
+                // Get all the plugins for this specific route
+                val plugins = endpoint.specificPlugins.filter { it.first == path }
+                for ((_, plugin, configure) in plugins) {
+                    log.debug("Installed local-scoped plugin $plugin onto route $path")
                     install(plugin, configure)
                 }
 

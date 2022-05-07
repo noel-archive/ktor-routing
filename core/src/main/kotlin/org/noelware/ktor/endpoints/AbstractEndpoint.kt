@@ -36,6 +36,7 @@ import kotlin.reflect.full.findAnnotation
  */
 open class AbstractEndpoint(val path: String = "/") {
     private val log = LoggerFactory.getLogger(this::class.java)
+    val specificPlugins = mutableListOf<Triple<String, Plugin<Route, *, *>, Any.() -> Unit>>()
     val routes: MutableList<Triple<String, HttpMethod, KCallable<*>>> = mutableListOf()
     val plugins = mutableListOf<Pair<Plugin<Route, *, *>, Any.() -> Unit>>()
 
@@ -109,14 +110,37 @@ open class AbstractEndpoint(val path: String = "/") {
         if (other == "/") current else "${if (current == "/") "" else current}$other"
 
     /**
-     * Installs a route plugin onto this [AbstractEndpoint] that will be used.
+     * Installs a route plugin into every route that is installed on this [AbstractEndpoint].
+     *
      * @param plugin The plugin to install
      * @param configure The configuration block to configure this [plugin].
      * @return this [AbstractEndpoint] to chain methods.
      */
     fun <C: Any, B: Any> install(plugin: Plugin<Route, C, B>, configure: C.() -> Unit): AbstractEndpoint {
+        log.debug("Installing plugin $plugin to every route.")
+
         @Suppress("UNCHECKED_CAST")
         plugins.add(Pair(plugin, configure as Any.() -> Unit))
+        return this
+    }
+
+    /**
+     * Installs a route plugin on a specific route that is installed on this [AbstractEndpoint].
+     * @param route The route to install it on
+     * @param plugin The plugin to install
+     * @param configure The configuration block to configure this [plugin].
+     * @return this [AbstractEndpoint] to chain methods.
+     */
+    fun <C: Any, B: Any> install(route: String, plugin: Plugin<Route, C, B>, configure: C.() -> Unit): AbstractEndpoint {
+        log.debug("Installing plugin $plugin into route $route!")
+
+        @Suppress("UNCHECKED_CAST")
+        specificPlugins.add(Triple(
+            route,
+            plugin,
+            configure as Any.() -> Unit
+        ))
+
         return this
     }
 }
