@@ -4,6 +4,7 @@ $dokka.linkExtension:html
 module:core
 org.noelware.ktor
 org.noelware.ktor.endpoints
+org.noelware.ktor.internal
 org.noelware.ktor.loader
 module:loader-koin
 org.noelware.ktor.loader.koin
