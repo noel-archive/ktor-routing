@@ -27,8 +27,8 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.slf4j.LoggerFactory
-import kotlin.reflect.KCallable
 import kotlin.reflect.full.findAnnotation
+import org.noelware.ktor.internal.Route as NoelRoute
 
 /**
  * Represents an endpoint to use to implement routing in an object-orientated way.
@@ -36,8 +36,7 @@ import kotlin.reflect.full.findAnnotation
  */
 open class AbstractEndpoint(val path: String = "/") {
     private val log = LoggerFactory.getLogger(this::class.java)
-    val specificPlugins = mutableListOf<Triple<String, Plugin<Route, *, *>, Any.() -> Unit>>()
-    val routes: MutableList<Triple<String, HttpMethod, KCallable<*>>> = mutableListOf()
+    val routes: MutableList<NoelRoute> = mutableListOf()
     val plugins = mutableListOf<Pair<Plugin<Route, *, *>, Any.() -> Unit>>()
 
     // this looks like actual hot garbage but it works, i think.
@@ -61,7 +60,14 @@ open class AbstractEndpoint(val path: String = "/") {
                 val p = mergePaths(path, meta.path)
                 log.debug("Registered route ${m.value} $p")
 
-                routes.add(Triple(p, m, method))
+                routes.add(
+                    NoelRoute(
+                        p,
+                        methods,
+                        method,
+                        this
+                    )
+                )
             }
         }
 
@@ -70,7 +76,14 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route GET $p")
 
-            routes.add(Triple(p, HttpMethod.Get, method))
+            routes.add(
+                NoelRoute(
+                    p,
+                    HttpMethod.Get,
+                    method,
+                    this
+                )
+            )
         }
 
         for (method in putMethods) {
@@ -78,7 +91,14 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route PUT $p")
 
-            routes.add(Triple(p, HttpMethod.Put, method))
+            routes.add(
+                NoelRoute(
+                    p,
+                    HttpMethod.Put,
+                    method,
+                    this
+                )
+            )
         }
 
         for (method in postMethods) {
@@ -86,7 +106,14 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route POST $p")
 
-            routes.add(Triple(p, HttpMethod.Post, method))
+            routes.add(
+                NoelRoute(
+                    p,
+                    HttpMethod.Post,
+                    method,
+                    this
+                )
+            )
         }
 
         for (method in deleteMethods) {
@@ -94,7 +121,14 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route DELETE $p")
 
-            routes.add(Triple(p, HttpMethod.Delete, method))
+            routes.add(
+                NoelRoute(
+                    p,
+                    HttpMethod.Delete,
+                    method,
+                    this
+                )
+            )
         }
 
         for (method in patchMethods) {
@@ -102,7 +136,14 @@ open class AbstractEndpoint(val path: String = "/") {
             val p = mergePaths(path, meta.path)
             log.debug("Registered route PATCH $p")
 
-            routes.add(Triple(p, HttpMethod.Patch, method))
+            routes.add(
+                NoelRoute(
+                    p,
+                    HttpMethod.Patch,
+                    method,
+                    this
+                )
+            )
         }
     }
 
@@ -134,15 +175,35 @@ open class AbstractEndpoint(val path: String = "/") {
     fun <C: Any, B: Any> install(route: String, plugin: Plugin<Route, C, B>, configure: C.() -> Unit = {}): AbstractEndpoint {
         log.debug("Initialized plugin ${plugin.key.name} on route $route")
 
-        @Suppress("UNCHECKED_CAST")
-        specificPlugins.add(
-            Triple(
-                route,
-                plugin,
-                configure as Any.() -> Unit
-            )
-        )
+        val r = routes.filter { it.path == route }
+        for (rou in r) {
+            log.debug("Installing plugin ${plugin.key.name} on routes ${rou.method.joinToString(", ") { it.value }} ${rou.path}!")
+            rou.install(plugin, configure)
+        }
 
+        return this
+    }
+
+    /**
+     * Installs a route plugin on a specific route AND [method][HttpMethod] that is installed on this [AbstractEndpoint].
+     * @param method The HTTP method to use to find the route to install the plugin in.
+     * @param route The route to install it on
+     * @param plugin The plugin to install
+     * @param configure The configuration block to configure this [plugin].
+     * @return this [AbstractEndpoint] to chain methods.
+     */
+    fun <C: Any, B: Any> install(
+        method: HttpMethod,
+        route: String,
+        plugin: Plugin<Route, C, B>,
+        configure: C.() -> Unit = {}
+    ): AbstractEndpoint {
+        log.debug("Adding plugin ${plugin.key.name} to route ${method.value} $route")
+
+        val rou = routes.firstOrNull { it.path == route && it.method.contains(method) }
+            ?: throw IllegalStateException("Route ${method.value} $route doesn't exist.")
+
+        rou.install(plugin, configure)
         return this
     }
 }

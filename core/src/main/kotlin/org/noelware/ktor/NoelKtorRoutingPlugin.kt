@@ -31,7 +31,6 @@ import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 import org.noelware.ktor.loader.ListBasedLoader
 import org.slf4j.LoggerFactory
-import kotlin.reflect.full.callSuspend
 
 @KtorDsl
 class NoelKtorRoutingConfiguration {
@@ -80,47 +79,44 @@ val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = cre
     log.debug("Registering ${newEndpointMap.size} endpoints!")
 
     for (endpoint in newEndpointMap) {
-        for ((path, method, callable) in endpoint.routes) {
-            routing.route(path, method) {
-                log.debug("Registering route ${method.value} $path!")
+        log.debug("Found ${endpoint::class} to register!")
 
-                val keyPair = Pair(path, method)
-                if (alreadyRegistered.contains(keyPair)) {
-                    log.debug("Route ${method.value} $path is already registered, skipping.")
-                    return@route
-                }
-
-                alreadyRegistered.add(keyPair)
-
-                // Install all the global scoped plugins for this route.
-                for ((plugin, configure) in endpoint.plugins) {
-                    log.debug("Installed global-scoped plugin ${plugin.key.name} onto route $path")
-
-                    if (pluginRegistry.contains(plugin.key)) {
-                        log.warn("Plugin ${plugin.key.name} is already registered on route, skipping!")
-                        continue
+        for (route in endpoint.routes) {
+            log.debug("Found route ${route.path} with methods [${route.method.joinToString(", ") { it.value }}] to register!")
+            for (method in route.method) {
+                routing.route(route.path, method) {
+                    val keyPair = Pair(route.path, method)
+                    if (alreadyRegistered.contains(keyPair)) {
+                        log.warn("Route ${method.value} ${route.path} was already registered! Skipping...")
+                        return@route
                     }
 
-                    install(plugin, configure)
-                }
+                    alreadyRegistered.add(keyPair)
 
-                // Get all the plugins for this specific route
-                val plugins = endpoint.specificPlugins.filter { it.first == path }
-                for ((_, plugin, configure) in plugins) {
-                    log.debug("Installed local-scoped plugin $plugin onto route $path")
-                    if (pluginRegistry.contains(plugin.key)) {
-                        log.warn("Plugin ${plugin.key.name} is already registered on route, skipping!")
-                        continue
+                    // Install all the global plugins
+                    for ((plugin, configure) in endpoint.plugins) {
+                        log.debug("Installing global-scoped plugin ${plugin.key.name} on route ${method.value} ${route.path}!")
+                        if (pluginRegistry.contains(plugin.key)) {
+                            log.warn("Plugin ${plugin.key.name} was already registered on route ${method.value} ${route.path}! Skipping.")
+                            continue
+                        }
+
+                        install(plugin, configure)
                     }
 
-                    install(plugin, configure)
-                }
+                    // Install all the local route-scoped plugins
+                    for ((plugin, configure) in route.plugins) {
+                        log.debug("Installing local-scoped plugin ${plugin.key.name} on route ${method.value} ${route.path}!")
+                        if (pluginRegistry.contains(plugin.key)) {
+                            log.warn("Plugin ${plugin.key.name} was already registered on route ${method.value} ${route.path}! Skipping.")
+                            continue
+                        }
 
-                handle {
-                    if (callable.isSuspend) {
-                        callable.callSuspend(endpoint, call)
-                    } else {
-                        callable.call(endpoint, call)
+                        install(plugin, configure)
+                    }
+
+                    handle {
+                        route.run(call)
                     }
                 }
             }
