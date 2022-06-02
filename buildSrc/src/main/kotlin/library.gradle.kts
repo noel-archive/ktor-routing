@@ -24,6 +24,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.noelware.ktor.gradle.*
 import dev.floofy.utils.gradle.*
+import java.net.URL
 
 plugins {
     id("com.diffplug.spotless")
@@ -97,6 +98,11 @@ tasks {
                     localDirectory.set(file("src/main/kotlin"))
                     remoteUrl.set(uri("https://github.com/Noelware/ktor-routing/tree/master/${project.name}/src/main/kotlin").toURL())
                     remoteLineSuffix.set("#L")
+                }
+
+                // Link to Ktor
+                externalDocumentationLink {
+                    url by URL("https://api.ktor.io/")
                 }
             }
         }
