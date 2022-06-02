@@ -39,6 +39,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import org.noelware.ktor.NoelKtorRouting
 import org.noelware.ktor.NoelKtorRoutingPlugin
 import org.noelware.ktor.body
 import org.noelware.ktor.endpoints.AbstractEndpoint
@@ -50,10 +51,10 @@ class KtorPluginTests: DescribeSpec({
     val log by logging<KtorPluginTests>()
 
     describe("org.noelware.ktor.tests.KtorPluginTests") {
-        it("should throw an error if the `routing` plguin was not initialized.") {
+        it("should throw an error if the `routing` plugin was not initialized.") {
             val exception = shouldThrow<IllegalStateException> {
                 testApplication {
-                    install(NoelKtorRoutingPlugin)
+                    install(NoelKtorRouting)
                 }
             }
 
@@ -64,7 +65,7 @@ class KtorPluginTests: DescribeSpec({
             shouldNotThrow<IllegalStateException> {
                 testApplication {
                     install(Routing)
-                    install(NoelKtorRoutingPlugin)
+                    install(NoelKtorRouting)
                 }
             }
         }
@@ -72,7 +73,7 @@ class KtorPluginTests: DescribeSpec({
         it("should run `GET /`, `GET /api`, and `POST /api/uwu`") {
             testApplication {
                 install(Routing)
-                install(NoelKtorRoutingPlugin) {
+                install(NoelKtorRouting) {
                     endpoints(
                         OtherEndpoint(),
                         object: AbstractEndpoint("/api") {
