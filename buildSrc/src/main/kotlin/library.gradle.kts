@@ -46,7 +46,7 @@ dependencies {
     api("org.slf4j:slf4j-api:1.7.36")
 
     // Noel Utils
-    implementation("dev.floofy.commons:slf4j:2.1.0")
+    implementation("dev.floofy.commons:slf4j:2.1.0.1")
 
     // Testing utilities
     testImplementation("io.kotest:kotest-runner-junit5:5.3.0")

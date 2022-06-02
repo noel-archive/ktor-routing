@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory
 
 @KtorDsl
 class NoelKtorRoutingConfiguration {
-    var endpoints = mutableListOf<AbstractEndpoint>()
-    var endpointLoader: IEndpointLoader? = null
+    internal var endpoints = mutableListOf<AbstractEndpoint>()
+    internal var endpointLoader: IEndpointLoader? = null
 
     /**
      * Registers a new [IEndpointLoader] to use to load all the routes.
@@ -61,7 +61,16 @@ class NoelKtorRoutingConfiguration {
     }
 }
 
-val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApplicationPlugin(
+/**
+ * The plugin to register into your Ktor application.
+ *
+ * ```kotlin
+ * fun Application.module() {
+ *    install(NoelKtorRouting)
+ * }
+ * ```
+ */
+val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApplicationPlugin(
     "NoelKtorRouting",
     ::NoelKtorRoutingConfiguration
 ) {
@@ -80,6 +89,7 @@ val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = cre
 
     for (endpoint in newEndpointMap) {
         log.debug("Found ${endpoint::class} to register!")
+        endpoint.init()
 
         for (route in endpoint.routes) {
             log.debug("Found route ${route.path} with methods [${route.method.joinToString(", ") { it.value }}] to register!")
@@ -123,3 +133,7 @@ val NoelKtorRoutingPlugin: ApplicationPlugin<NoelKtorRoutingConfiguration> = cre
         }
     }
 }
+
+@Deprecated("Using 'NoelKtorRoutingPlugin' is deprecated.",
+    replaceWith = ReplaceWith("NoelKtorRouting"))
+val NoelKtorRoutingPlugin = NoelKtorRouting

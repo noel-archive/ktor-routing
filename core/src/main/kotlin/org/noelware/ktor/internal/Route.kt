@@ -33,7 +33,7 @@ import io.ktor.server.routing.Route as KtorRoute
 /**
  * Represents a basic route that is registered in a [AbstractEndpoint].
  */
-class Route(
+internal class Route(
     val path: String,
     val method: List<HttpMethod> = listOf(HttpMethod.Get),
     private val runner: KCallable<*>,

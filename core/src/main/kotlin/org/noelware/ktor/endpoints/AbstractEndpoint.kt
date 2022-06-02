@@ -36,11 +36,11 @@ import org.noelware.ktor.internal.Route as NoelRoute
  */
 open class AbstractEndpoint(val path: String = "/") {
     private val log = LoggerFactory.getLogger(this::class.java)
-    val routes: MutableList<NoelRoute> = mutableListOf()
-    val plugins = mutableListOf<Pair<Plugin<Route, *, *>, Any.() -> Unit>>()
+    internal val routes: MutableList<NoelRoute> = mutableListOf()
+    internal val plugins = mutableListOf<Pair<Plugin<Route, *, *>, Any.() -> Unit>>()
 
     // this looks like actual hot garbage but it works, i think.
-    init {
+    internal fun init() {
         log.debug("Finding all routes based off annotations...")
 
         val httpMethods = this::class.members.filter { it.findAnnotation<Http>() != null }
