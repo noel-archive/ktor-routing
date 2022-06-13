@@ -27,6 +27,6 @@ plugins {
 }
 
 dependencies {
-    implementation("dev.floofy.commons:extensions-koin:2.1.0.1")
+    implementation("dev.floofy.commons:extensions-koin:2.1.1")
     api("io.insert-koin:koin-core:3.2.0")
 }

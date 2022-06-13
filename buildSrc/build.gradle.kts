@@ -33,19 +33,19 @@ repositories {
 }
 
 dependencies {
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.6.1")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.7.2")
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.6.21")
     implementation(kotlin("gradle-plugin", version = "1.6.21"))
     implementation(kotlin("serialization", version = "1.6.21"))
     implementation("io.kotest:kotest-gradle-plugin:0.3.9")
-    implementation("dev.floofy.commons:gradle:2.1.0.1")
+    implementation("dev.floofy.commons:gradle:2.1.1")
     implementation(gradleApi())
 }
 
-// This is here so we do get the following warning:
+// This is here, so we do get the following warning:
 // > Task :buildSrc:compileKotlin
 // 'compileJava' task (current target is 17) and 'compileKotlin' task (current target is 1.8) jvm target compatibility should be set to the same Java version.
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
