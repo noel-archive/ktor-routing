@@ -21,11 +21,34 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor.gradle
+@file:Suppress("UNUSED")
+package org.noelware.ktor.tests.reflections
 
-import dev.floofy.utils.gradle.ReleaseType
-import dev.floofy.utils.gradle.Version
-import org.gradle.api.JavaVersion
+import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.assertions.ktor.client.shouldNotHaveStatus
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.shouldBe
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import org.noelware.ktor.NoelKtorRouting
+import org.noelware.ktor.loader.reflections.ReflectionsEndpointLoader
 
-val VERSION = Version(0, 2, 0, 0, ReleaseType.Beta)
-val JAVA_VERSION = JavaVersion.VERSION_17
+class ReflectionsTest: DescribeSpec({
+    describe("org.noelware.ktor.tests.reflections") {
+        it("should register successfully") {
+            testApplication {
+                routing {}
+                install(NoelKtorRouting) {
+                    endpointLoader(ReflectionsEndpointLoader("com.example.myapi"))
+                }
+
+                val res = client.get("/")
+                res shouldHaveStatus HttpStatusCode.OK
+                res shouldNotHaveStatus HttpStatusCode.BadRequest
+                res.body<String>() shouldBe "Hello, world!"
+            }
+        }
+    }
+})

@@ -40,7 +40,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.noelware.ktor.NoelKtorRouting
-import org.noelware.ktor.NoelKtorRoutingPlugin
 import org.noelware.ktor.body
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.endpoints.Get
@@ -67,6 +66,36 @@ class KtorPluginTests: DescribeSpec({
                     install(Routing)
                     install(NoelKtorRouting)
                 }
+            }
+        }
+
+        it("should just work on multiple path resources") {
+            testApplication {
+                routing {}
+                install(NoelKtorRouting) {
+                    endpoints(
+                        object: AbstractEndpoint(listOf("/", "/api")) {
+                            @Get
+                            suspend fun call(call: ApplicationCall) {
+                                call.respond(HttpStatusCode.OK, "Hello, world!")
+                            }
+                        }
+                    )
+                }
+
+                val res1 = client.get("/")
+                res1 shouldHaveStatus HttpStatusCode.OK
+                res1 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res1.body<String>() shouldBe "Hello, world!"
+
+                val res2 = client.get("/api")
+                res2 shouldHaveStatus HttpStatusCode.OK
+                res2 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res2.body<String>() shouldBe "Hello, world!"
+
+                val res3 = client.get("/blah")
+                res3 shouldHaveStatus HttpStatusCode.NotFound
+                res3 shouldNotHaveStatus HttpStatusCode.OK
             }
         }
 

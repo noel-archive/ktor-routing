@@ -138,7 +138,8 @@ val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApp
  * Using this variable is deprecated, please use [NoelKtorRouting] instead!
  */
 @Deprecated(
-    "Using 'NoelKtorRoutingPlugin' is deprecated.",
+    "Using 'NoelKtorRoutingPlugin' is deprecated, it'll be removed in the 0.3-beta release.",
     replaceWith = ReplaceWith("NoelKtorRouting")
 )
+@Suppress("UNUSED")
 val NoelKtorRoutingPlugin = NoelKtorRouting

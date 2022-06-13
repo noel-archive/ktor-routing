@@ -28,4 +28,8 @@ plugins {
 
 dependencies {
     api("org.reflections:reflections:0.10.2")
+
+    testImplementation("io.kotest.extensions:kotest-assertions-ktor:1.0.3")
+    testImplementation("io.ktor:ktor-server-test-host:2.0.2")
+    testImplementation("org.slf4j:slf4j-simple:1.7.36")
 }

@@ -21,11 +21,17 @@
  * SOFTWARE.
  */
 
-package org.noelware.ktor.gradle
+package com.example.myapi
 
-import dev.floofy.utils.gradle.ReleaseType
-import dev.floofy.utils.gradle.Version
-import org.gradle.api.JavaVersion
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.response.*
+import org.noelware.ktor.endpoints.AbstractEndpoint
+import org.noelware.ktor.endpoints.Get
 
-val VERSION = Version(0, 2, 0, 0, ReleaseType.Beta)
-val JAVA_VERSION = JavaVersion.VERSION_17
+class ExampleApiEndpoint: AbstractEndpoint() {
+    @Get
+    suspend fun main(call: ApplicationCall) {
+        call.respond(HttpStatusCode.OK, "Hello, world!")
+    }
+}

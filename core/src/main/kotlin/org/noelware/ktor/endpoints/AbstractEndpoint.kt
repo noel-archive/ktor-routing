@@ -32,14 +32,19 @@ import org.noelware.ktor.internal.Route as NoelRoute
 
 /**
  * Represents an endpoint to use to implement routing in an object-orientated way.
- * @param path The path that will be subsequently merged through the HTTP pipeline.
+ * @param paths A list of HTTP resources that will be subsequently merged within the routing plugin.
  */
-open class AbstractEndpoint(val path: String = "/") {
+open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
     private val log = LoggerFactory.getLogger(this::class.java)
     internal val routes: MutableList<NoelRoute> = mutableListOf()
     internal val plugins = mutableListOf<Pair<Plugin<Route, *, *>, Any.() -> Unit>>()
 
-    // this looks like actual hot garbage but it works, i think.
+    /**
+     * Represents an endpoint to use to implement routing in an object-orientated way.
+     * @param path A single resource prefix that will correspond to this [AbstractEndpoint].
+     */
+    constructor(path: String): this(listOf(path))
+
     internal fun init() {
         log.debug("Finding all routes based off annotations...")
 
@@ -57,13 +62,31 @@ open class AbstractEndpoint(val path: String = "/") {
             val methods = meta.methods.map { HttpMethod.parse(it) }
 
             for (m in methods) {
+                for (path in paths) {
+                    val p = mergePaths(path, meta.path)
+                    log.debug("Registered route ${m.value} $p")
+                    routes.add(
+                        NoelRoute(
+                            p,
+                            methods,
+                            method,
+                            this
+                        )
+                    )
+                }
+            }
+        }
+
+        for (method in getMethods) {
+            for (path in paths) {
+                val meta = method.findAnnotation<Get>() ?: continue
                 val p = mergePaths(path, meta.path)
-                log.debug("Registered route ${m.value} $p")
+                log.debug("Registered route => GET $p")
 
                 routes.add(
                     NoelRoute(
                         p,
-                        methods,
+                        HttpMethod.Get,
                         method,
                         this
                     )
@@ -71,84 +94,119 @@ open class AbstractEndpoint(val path: String = "/") {
             }
         }
 
-        for (method in getMethods) {
-            val meta = method.findAnnotation<Get>() ?: continue
-            val p = mergePaths(path, meta.path)
-            log.debug("Registered route GET $p")
-
-            routes.add(
-                NoelRoute(
-                    p,
-                    HttpMethod.Get,
-                    method,
-                    this
-                )
-            )
-        }
-
         for (method in putMethods) {
-            val meta = method.findAnnotation<Put>() ?: continue
-            val p = mergePaths(path, meta.path)
-            log.debug("Registered route PUT $p")
+            for (path in paths) {
+                val meta = method.findAnnotation<Put>() ?: continue
+                val p = mergePaths(path, meta.path)
+                log.debug("Registered route => PUT $p")
 
-            routes.add(
-                NoelRoute(
-                    p,
-                    HttpMethod.Put,
-                    method,
-                    this
+                routes.add(
+                    NoelRoute(
+                        p,
+                        HttpMethod.Put,
+                        method,
+                        this
+                    )
                 )
-            )
+            }
         }
 
         for (method in postMethods) {
-            val meta = method.findAnnotation<Post>() ?: continue
-            val p = mergePaths(path, meta.path)
-            log.debug("Registered route POST $p")
+            for (path in paths) {
+                val meta = method.findAnnotation<Post>() ?: continue
+                val p = mergePaths(path, meta.path)
+                log.debug("Registered route => POST $p")
 
-            routes.add(
-                NoelRoute(
-                    p,
-                    HttpMethod.Post,
-                    method,
-                    this
+                routes.add(
+                    NoelRoute(
+                        p,
+                        HttpMethod.Post,
+                        method,
+                        this
+                    )
                 )
-            )
+            }
         }
 
         for (method in deleteMethods) {
-            val meta = method.findAnnotation<Delete>() ?: continue
-            val p = mergePaths(path, meta.path)
-            log.debug("Registered route DELETE $p")
+            for (path in paths) {
+                val meta = method.findAnnotation<Delete>() ?: continue
+                val p = mergePaths(path, meta.path)
+                log.debug("Registered route => DELETE $p")
 
-            routes.add(
-                NoelRoute(
-                    p,
-                    HttpMethod.Delete,
-                    method,
-                    this
+                routes.add(
+                    NoelRoute(
+                        p,
+                        HttpMethod.Delete,
+                        method,
+                        this
+                    )
                 )
-            )
+            }
         }
 
         for (method in patchMethods) {
-            val meta = method.findAnnotation<Patch>() ?: continue
-            val p = mergePaths(path, meta.path)
-            log.debug("Registered route PATCH $p")
+            for (path in paths) {
+                val meta = method.findAnnotation<Patch>() ?: continue
+                val p = mergePaths(path, meta.path)
+                log.debug("Registered route => PATCH $p")
 
-            routes.add(
-                NoelRoute(
-                    p,
-                    HttpMethod.Patch,
-                    method,
-                    this
+                routes.add(
+                    NoelRoute(
+                        p,
+                        HttpMethod.Patch,
+                        method,
+                        this
+                    )
                 )
-            )
+            }
         }
     }
 
     private fun mergePaths(current: String, other: String): String =
         if (other == "/") current else "${if (current == "/") "" else current}$other"
+
+    /**
+     * Installs a route plugin into every route listed in the [endpoints] map
+     * with a mapping of `method -> route`.
+     *
+     * @param endpoints The endpoints mapped from `method -> route` to register it from.
+     * @param plugin The plugin to install
+     * @param configure The configuration block to configure this [plugin].
+     * @return this [AbstractEndpoint] to chain methods.
+     */
+    fun <C: Any, B: Any> install(
+        endpoints: Map<HttpMethod, String>,
+        plugin: Plugin<Route, C, B>,
+        configure: C.() -> Unit = {}
+    ): AbstractEndpoint {
+        for ((method, route) in endpoints) {
+            install(method, route, plugin, configure)
+        }
+
+        return this
+    }
+
+    /**
+     * Installs a route plugin into every route listed in the [routes] list
+     * with the methods that are registered with it.
+     *
+     * @param routes A list of routes to register it on, regardless of the method.
+     * @param plugin The plugin to install
+     * @param configure The configuration block to configure this [plugin].
+     * @return this [AbstractEndpoint] to chain methods.
+     */
+    fun <C: Any, B: Any> install(
+        routes: List<String>,
+        plugin: Plugin<Route, C, B>,
+        configure: C.() -> Unit = {}
+    ): AbstractEndpoint {
+        for (route in routes) {
+            install(route, plugin, configure)
+        }
+
+        return this
+    }
 
     /**
      * Installs a route plugin into every route that is installed on this [AbstractEndpoint].
