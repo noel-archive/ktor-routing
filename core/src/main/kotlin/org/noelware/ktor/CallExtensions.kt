@@ -22,9 +22,12 @@
  */
 
 @file:JvmName("NoelKtorApplicationCallExtensionsKt")
+
 package org.noelware.ktor
 
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import kotlinx.coroutines.runBlocking
 import kotlin.properties.ReadOnlyProperty
@@ -40,3 +43,30 @@ inline fun <reified T: Any> ApplicationCall.body() = ReadOnlyProperty<Any?, T> {
         this@body.receive()
     }
 }
+
+/**
+ * Returns the true, real IP if the application is running behind the proxy. If not, it'll
+ * return the origin host from [request.origin][io.ktor.server.request.ApplicationRequest.origin]
+ */
+val ApplicationCall.realIP: String
+    get() {
+        val headers = request.headers
+        return if (headers.contains("True-Client-IP")) {
+            headers["True-Client-IP"]!!
+        } else if (headers.contains("X-Real-IP")) {
+            headers["X-Real-IP"]!!
+        } else if (headers.contains(HttpHeaders.XForwardedFor)) {
+            var index = headers[HttpHeaders.XForwardedFor]!!.indexOf(", ")
+            if (index == -1) {
+                index = headers[HttpHeaders.XForwardedFor]!!.length
+            }
+
+            if (index == headers[HttpHeaders.XForwardedFor]!!.length) {
+                headers[HttpHeaders.XForwardedFor]!!
+            } else {
+                headers[HttpHeaders.XForwardedFor]!!.slice(0..index)
+            }
+        } else {
+            request.origin.remoteHost
+        }
+    }

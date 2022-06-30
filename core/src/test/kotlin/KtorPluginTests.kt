@@ -40,12 +40,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import org.noelware.ktor.NoelKtorRouting
+import org.noelware.ktor.annotations.ExperimentalApi
 import org.noelware.ktor.body
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.endpoints.Get
 import org.noelware.ktor.endpoints.Post
 import owo.da.uwu.*
 
+@OptIn(ExperimentalApi::class)
 class KtorPluginTests: DescribeSpec({
     val log by logging<KtorPluginTests>()
 
@@ -150,6 +152,42 @@ class KtorPluginTests: DescribeSpec({
                 res3 shouldHaveStatus HttpStatusCode.OK
                 res3 shouldNotHaveStatus HttpStatusCode.BadRequest
                 res3.body<String>() shouldBe "owo da uwu"
+            }
+        }
+
+        it("should properly deserialize kotlin.Result<*>") {
+            testApplication {
+                install(Routing) {}
+                install(NoelKtorRouting) {
+                    endpoints(object: AbstractEndpoint("/") {
+                        @Get
+                        fun main(call: ApplicationCall): Result<String> = Result.success("owo da uwu!")
+
+                        @Get("/error")
+                        fun error(call: ApplicationCall): Result<String> = Result.failure(IllegalStateException("heck"))
+                    })
+
+                    supportKotlinResult = true
+                    dataResponse { call, _, e ->
+                        call.response.headers.append("Content-Type", "application/json; charset=utf-8", safeOnly = false)
+
+                        if (e != null) {
+                            call.respond(HttpStatusCode.BadRequest, "{\"bad\":true,\"exception\":\"${e.message}\"}")
+                        } else {
+                            call.respond(HttpStatusCode.OK, "{\"bad\":false}")
+                        }
+                    }
+                }
+
+                val res1 = client.get("/")
+                res1 shouldHaveStatus HttpStatusCode.OK
+                res1 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res1.body<String>() shouldBe "{\"bad\":false}"
+
+                val res2 = client.get("/error")
+                res2 shouldHaveStatus HttpStatusCode.BadRequest
+                res2 shouldNotHaveStatus HttpStatusCode.OK
+                res2.body<String>() shouldBe "{\"bad\":true,\"exception\":\"heck\"}"
             }
         }
     }

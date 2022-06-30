@@ -21,31 +21,11 @@
  * SOFTWARE.
  */
 
-plugins {
-    `kotlin-dsl`
-    groovy
-}
+package org.noelware.ktor.annotations
 
-repositories {
-    maven("https://maven.floofy.dev/repo/releases")
-    gradlePluginPortal()
-    mavenCentral()
-}
-
-dependencies {
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.7.2")
-    implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.6.21")
-    implementation(kotlin("gradle-plugin", version = "1.7.0"))
-    implementation("io.kotest:kotest-gradle-plugin:0.3.9")
-    implementation("dev.floofy.commons:gradle:2.1.1")
-    implementation(gradleApi())
-}
-
-// This is here, so we do get the following warning:
-// > Task :buildSrc:compileKotlin
-// 'compileJava' task (current target is 17) and 'compileKotlin' task (current target is 1.8) jvm target compatibility should be set to the same Java version.
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-}
+/**
+ * Refers to an experimental API that shouldn't be in use due to the API changing.
+ */
+@RequiresOptIn("This API is currently experimental, please annotate with this annotation to remove this warning!", RequiresOptIn.Level.ERROR)
+@MustBeDocumented
+annotation class ExperimentalApi

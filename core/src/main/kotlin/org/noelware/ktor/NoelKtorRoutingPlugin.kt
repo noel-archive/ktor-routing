@@ -23,19 +23,35 @@
 
 package org.noelware.ktor
 
+import dev.floofy.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import org.noelware.ktor.annotations.ExperimentalApi
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 import org.noelware.ktor.loader.ListBasedLoader
-import org.slf4j.LoggerFactory
+
+/**
+ * Represents a caller function.
+ * @param T The result type
+ * @param E The exception type
+ */
+typealias DataResponseCallee <T, E> = suspend (ApplicationCall, T, E?) -> Unit
 
 @KtorDsl
 class NoelKtorRoutingConfiguration {
     internal var endpoints = mutableListOf<AbstractEndpoint>()
     internal var endpointLoader: IEndpointLoader? = null
+    internal var dataResponseCallee: DataResponseCallee<Result<*>, Throwable>? = null
+
+    /**
+     * If the library should support handling [kotlin.Result][kotlin.Result] objects if returned
+     * from any endpoint method.
+     */
+    @ExperimentalApi
+    var supportKotlinResult: Boolean = false
 
     /**
      * Registers a new [IEndpointLoader] to use to load all the routes.
@@ -43,8 +59,9 @@ class NoelKtorRoutingConfiguration {
      * @return this [configuration object][NoelKtorRoutingConfiguration] to chain methods.
      */
     fun endpointLoader(loader: IEndpointLoader): NoelKtorRoutingConfiguration {
-        if (endpointLoader != null)
+        if (endpointLoader != null) {
             throw IllegalStateException("An endpoint loader is already injected!")
+        }
 
         endpointLoader = loader
         return this
@@ -59,6 +76,32 @@ class NoelKtorRoutingConfiguration {
         endpoints += _endpoints
         return this
     }
+
+    /**
+     * Sets the [DataResponseCallee] to when [kotlin.Result][kotlin.Result] is supported when
+     * returned by any endpoint method. This can be only added if [supportKotlinResult] is
+     * `true`, otherwise you're fine by not using this. It is also recommended to use this
+     * method so the plugin knows how to handle the result, otherwise it'll throw away
+     * the result.
+     *
+     * @param T The [Result] object itself.
+     * @param E The thrown exception if anything had occurred.
+     * @param callee The caller function to use
+     * @return this [configuration][NoelKtorRoutingConfiguration] to chain methods
+     * @since 0.3-beta (30.06.22)
+     */
+    @ExperimentalApi
+    @Suppress("UNCHECKED_CAST")
+    fun dataResponse(callee: DataResponseCallee<Result<Any>, Exception?>): NoelKtorRoutingConfiguration {
+        check(supportKotlinResult) { "You must enable the experimental `supportKotlinResult` property before using this method." }
+
+        if (dataResponseCallee != null) {
+            throw IllegalStateException("`dataResponseCallee` was already added.")
+        }
+
+        dataResponseCallee = callee as DataResponseCallee<Result<*>, Throwable>
+        return this
+    }
 }
 
 /**
@@ -70,12 +113,13 @@ class NoelKtorRoutingConfiguration {
  * }
  * ```
  */
+@OptIn(ExperimentalApi::class)
 val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApplicationPlugin(
     "NoelKtorRouting",
     ::NoelKtorRoutingConfiguration
 ) {
     val routing = application.pluginOrNull(Routing) ?: error("Missing `routing {}` plugin in application module")
-    val log = LoggerFactory.getLogger("org.noelware.ktor.NoelKtorRoutingPluginKt")
+    val log by logging("org.noelware.ktor.routing.NoelKtorRoutingPlugin")
     val endpointsMap = pluginConfig.endpoints
     val loader = if (pluginConfig.endpointLoader == null) {
         ListBasedLoader(endpointsMap)
@@ -126,20 +170,24 @@ val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApp
                     }
 
                     handle {
-                        route.run(call)
+                        val result = route.run(call)
+                        if (result != null && result is Unit) {
+                            return@handle
+                        }
+
+                        // Support for Kotlin's Result (because why not?)
+                        val pluginConfig = this@createApplicationPlugin.pluginConfig
+                        if (pluginConfig.supportKotlinResult && result is Result<*>) {
+                            if (pluginConfig.dataResponseCallee == null) {
+                                log.warn("Throwing away result due to no data response caller function.")
+                                return@handle
+                            }
+
+                            pluginConfig.dataResponseCallee!!.invoke(call, result, result.exceptionOrNull())
+                        }
                     }
                 }
             }
         }
     }
 }
-
-/**
- * Using this variable is deprecated, please use [NoelKtorRouting] instead!
- */
-@Deprecated(
-    "Using 'NoelKtorRoutingPlugin' is deprecated, it'll be removed in the 0.3-beta release.",
-    replaceWith = ReplaceWith("NoelKtorRouting")
-)
-@Suppress("UNUSED")
-val NoelKtorRoutingPlugin = NoelKtorRouting
