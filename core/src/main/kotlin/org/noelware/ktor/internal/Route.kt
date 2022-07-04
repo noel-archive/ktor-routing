@@ -37,27 +37,29 @@ internal class Route(
     val path: String,
     val method: List<HttpMethod> = listOf(HttpMethod.Get),
     private val runner: KCallable<*>,
-    private val thisCtx: AbstractEndpoint
+    private val parent: AbstractEndpoint
 ) {
-    constructor(path: String, method: HttpMethod, runner: KCallable<*>, thisCtx: AbstractEndpoint): this(
+    constructor(path: String, method: HttpMethod, runner: KCallable<*>, parent: AbstractEndpoint): this(
         path,
         listOf(method),
         runner,
-        thisCtx
+        parent
     )
 
     val plugins: MutableList<Pair<Plugin<KtorRoute, *, *>, Any.() -> Unit>> = mutableListOf()
 
+    @Suppress("UNCHECKED_CAST")
     fun <C: Any, B: Any> install(plugin: Plugin<io.ktor.server.routing.Route, C, B>, configure: C.() -> Unit = {}) {
-        @Suppress("UNCHECKED_CAST")
-        plugins.add(
-            Pair(
-                plugin,
-                configure as Any.() -> Unit
-            )
+        val plu = Pair(
+            plugin,
+            configure as Any.() -> Unit
         )
+
+        if (!plugins.contains(plu)) {
+            plugins.add(plu)
+        }
     }
 
     suspend fun run(call: ApplicationCall): Any? =
-        if (runner.isSuspend) runner.callSuspend(thisCtx, call) else runner.call(thisCtx, call)
+        if (runner.isSuspend) runner.callSuspend(parent, call) else runner.call(parent, call)
 }

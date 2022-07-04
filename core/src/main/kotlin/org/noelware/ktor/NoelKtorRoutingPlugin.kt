@@ -32,6 +32,11 @@ import org.noelware.ktor.annotations.ExperimentalApi
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 import org.noelware.ktor.loader.ListBasedLoader
+import kotlin.reflect.KParameter
+import kotlin.reflect.full.callSuspend
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 
 /**
  * Represents a caller function.
@@ -84,8 +89,6 @@ class NoelKtorRoutingConfiguration {
      * method so the plugin knows how to handle the result, otherwise it'll throw away
      * the result.
      *
-     * @param T The [Result] object itself.
-     * @param E The thrown exception if anything had occurred.
      * @param callee The caller function to use
      * @return this [configuration][NoelKtorRoutingConfiguration] to chain methods
      * @since 0.3-beta (30.06.22)
@@ -170,24 +173,33 @@ val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApp
                     }
 
                     handle {
-                        val result = route.run(call)
-                        if (result != null && result is Unit) {
-                            return@handle
-                        }
-
-                        // Support for Kotlin's Result (because why not?)
-                        val pluginConfig = this@createApplicationPlugin.pluginConfig
-                        if (pluginConfig.supportKotlinResult && result is Result<*>) {
-                            if (pluginConfig.dataResponseCallee == null) {
-                                log.warn("Throwing away result due to no data response caller function.")
-                                return@handle
-                            }
-
-                            pluginConfig.dataResponseCallee!!.invoke(call, result, result.exceptionOrNull())
-                        }
+                        handleRouteCall(this@createApplicationPlugin.pluginConfig, call, route)
                     }
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalApi::class)
+private suspend fun handleRouteCall(
+    config: NoelKtorRoutingConfiguration,
+    call: ApplicationCall,
+    route: org.noelware.ktor.internal.Route
+) {
+    val log by logging("org.noelware.ktor.NoelKtorRoutingPluginKt\$handleNormalRouteCall")
+    val result = route.run(call)
+    if (result != null && result is Unit) {
+        return
+    }
+
+    // Support for Kotlin's Result (because why not?)
+    if (config.supportKotlinResult && result is Result<*>) {
+        if (config.dataResponseCallee == null) {
+            log.warn("Throwing away result due to no data response caller function.")
+            return
+        }
+
+        config.dataResponseCallee!!.invoke(call, result, result.exceptionOrNull())
     }
 }

@@ -42,9 +42,7 @@ import io.ktor.server.testing.*
 import org.noelware.ktor.NoelKtorRouting
 import org.noelware.ktor.annotations.ExperimentalApi
 import org.noelware.ktor.body
-import org.noelware.ktor.endpoints.AbstractEndpoint
-import org.noelware.ktor.endpoints.Get
-import org.noelware.ktor.endpoints.Post
+import org.noelware.ktor.endpoints.*
 import owo.da.uwu.*
 
 @OptIn(ExperimentalApi::class)
