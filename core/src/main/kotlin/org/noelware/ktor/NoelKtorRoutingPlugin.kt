@@ -32,18 +32,13 @@ import org.noelware.ktor.annotations.ExperimentalApi
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import org.noelware.ktor.loader.IEndpointLoader
 import org.noelware.ktor.loader.ListBasedLoader
-import kotlin.reflect.KParameter
-import kotlin.reflect.full.callSuspend
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
 
 /**
  * Represents a caller function.
  * @param T The result type
  * @param E The exception type
  */
-typealias DataResponseCallee <T, E> = suspend (ApplicationCall, T, E?) -> Unit
+typealias DataResponseCallee<T, E> = suspend (ApplicationCall, T, E?) -> Unit
 
 @KtorDsl
 class NoelKtorRoutingConfiguration {
@@ -116,7 +111,6 @@ class NoelKtorRoutingConfiguration {
  * }
  * ```
  */
-@OptIn(ExperimentalApi::class)
 val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApplicationPlugin(
     "NoelKtorRouting",
     ::NoelKtorRoutingConfiguration
@@ -136,8 +130,6 @@ val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApp
 
     for (endpoint in newEndpointMap) {
         log.debug("Found ${endpoint::class} to register!")
-        endpoint.init()
-
         for (route in endpoint.routes) {
             log.debug("Found route ${route.path} with methods [${route.method.joinToString(", ") { it.value }}] to register!")
             for (method in route.method) {
@@ -187,7 +179,7 @@ private suspend fun handleRouteCall(
     call: ApplicationCall,
     route: org.noelware.ktor.internal.Route
 ) {
-    val log by logging("org.noelware.ktor.NoelKtorRoutingPluginKt\$handleNormalRouteCall")
+    val log by logging("org.noelware.ktor.NoelKtorRoutingPluginKt\$handleRouteCall")
     val result = route.run(call)
     if (result != null && result is Unit) {
         return

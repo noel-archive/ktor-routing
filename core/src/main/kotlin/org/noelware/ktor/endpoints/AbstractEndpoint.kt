@@ -45,7 +45,7 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
      */
     constructor(path: String): this(listOf(path))
 
-    internal fun init() {
+    init {
         log.debug("Finding all routes based off annotations...")
 
         val httpMethods = this::class.members.filter { it.findAnnotation<Http>() != null }
