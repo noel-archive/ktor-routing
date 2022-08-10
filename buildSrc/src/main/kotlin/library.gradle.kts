@@ -50,7 +50,7 @@ dependencies {
     implementation("dev.floofy.commons:slf4j:2.2.1.1")
 
     // Testing utilities
-    testImplementation("io.kotest:kotest-runner-junit5:5.4.1")
+    testImplementation("io.kotest:kotest-runner-junit5:5.4.2")
     testImplementation("io.kotest:kotest-assertions-core:5.4.2")
     testImplementation("io.kotest:kotest-property:5.4.2")
 
