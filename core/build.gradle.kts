@@ -31,5 +31,5 @@ dependencies {
     
     testImplementation("io.kotest.extensions:kotest-assertions-ktor:1.0.3")
     testImplementation("io.ktor:ktor-server-test-host:2.1.0")
-    testImplementation("org.slf4j:slf4j-simple:1.7.36")
+    testImplementation("org.slf4j:slf4j-simple:2.0.0")
 }
