@@ -26,6 +26,7 @@ package org.noelware.ktor.endpoints
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import org.noelware.ktor.annotations.ExperimentalApi
 import org.slf4j.LoggerFactory
 import kotlin.reflect.full.findAnnotation
 import org.noelware.ktor.internal.Route as NoelRoute
@@ -34,6 +35,7 @@ import org.noelware.ktor.internal.Route as NoelRoute
  * Represents an endpoint to use to implement routing in an object-orientated way.
  * @param paths A list of HTTP resources that will be subsequently merged within the routing plugin.
  */
+@OptIn(ExperimentalApi::class)
 open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
     private val log = LoggerFactory.getLogger(this::class.java)
     internal val routes: MutableList<NoelRoute> = mutableListOf()
@@ -44,7 +46,6 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
      * @param path A single resource prefix that will correspond to this [AbstractEndpoint].
      */
     constructor(path: String): this(listOf(path))
-
     init {
         log.debug("Finding all routes based off annotations...")
 
@@ -54,8 +55,18 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
         val patchMethods = this::class.members.filter { it.findAnnotation<Patch>() != null }
         val postMethods = this::class.members.filter { it.findAnnotation<Post>() != null }
         val deleteMethods = this::class.members.filter { it.findAnnotation<Delete>() != null }
+        val websocketRoutes = this::class.members.filter { it.findAnnotation<WebSocket>() != null }
 
-        log.debug("Found ${httpMethods.size} multiplexed routes, ${getMethods.size} GET routes, ${putMethods.size} PUT routes, ${patchMethods.size} PATCH routes, ${postMethods.size} POST routes, and ${deleteMethods.size} DELETE routes!")
+        log.debug("Found ${httpMethods.size} multiplexed routes, ${getMethods.size} GET routes, ${putMethods.size} PUT routes, ${patchMethods.size} PATCH routes, ${postMethods.size} POST routes, and ${deleteMethods.size} DELETE routes, and ${websocketRoutes.size} WebSocket routes!")
+        for (data in websocketRoutes) {
+            val meta = data.findAnnotation<WebSocket>() ?: continue
+            for (path in paths) {
+                val p = mergePaths(path, meta.path)
+                log.debug("Registered WebSocket route $p")
+
+                routes.add(NoelRoute(p, listOf(), true, data, this))
+            }
+        }
 
         for (method in httpMethods) {
             val meta = method.findAnnotation<Http>() ?: continue
@@ -69,6 +80,7 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                         NoelRoute(
                             p,
                             methods,
+                            false,
                             method,
                             this
                         )
@@ -86,7 +98,8 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                 routes.add(
                     NoelRoute(
                         p,
-                        HttpMethod.Get,
+                        listOf(HttpMethod.Get),
+                        false,
                         method,
                         this
                     )
@@ -103,7 +116,8 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                 routes.add(
                     NoelRoute(
                         p,
-                        HttpMethod.Put,
+                        listOf(HttpMethod.Put),
+                        false,
                         method,
                         this
                     )
@@ -120,7 +134,8 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                 routes.add(
                     NoelRoute(
                         p,
-                        HttpMethod.Post,
+                        listOf(HttpMethod.Post),
+                        false,
                         method,
                         this
                     )
@@ -137,7 +152,8 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                 routes.add(
                     NoelRoute(
                         p,
-                        HttpMethod.Delete,
+                        listOf(HttpMethod.Delete),
+                        false,
                         method,
                         this
                     )
@@ -154,7 +170,8 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                 routes.add(
                     NoelRoute(
                         p,
-                        HttpMethod.Patch,
+                        listOf(HttpMethod.Patch),
+                        false,
                         method,
                         this
                     )

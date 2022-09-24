@@ -40,7 +40,7 @@ repositories {
 
 tasks {
     wrapper {
-        version = "7.5-rc-4"
+        version = "7.5.1"
         distributionType = BIN
     }
 

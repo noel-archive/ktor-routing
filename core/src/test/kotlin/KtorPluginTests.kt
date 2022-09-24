@@ -188,5 +188,54 @@ class KtorPluginTests: DescribeSpec({
                 res2.body<String>() shouldBe "{\"bad\":true,\"exception\":\"heck\"}"
             }
         }
+
+        it("should handle /api as a base prefix") {
+            testApplication {
+                install(Routing)
+                install(NoelKtorRouting) {
+                    basePrefix = "/api"
+                    endpoints(
+                        object: AbstractEndpoint() {
+                            init {
+                                val globalScopedPlugin = createRouteScopedPlugin("owo da uwu") {
+                                    onCall { log.debug("global!") }
+                                }
+
+                                val localScopedPlugin = createRouteScopedPlugin("uwu da owo") {
+                                    onCall { log.debug("local") }
+                                }
+
+                                install("/uwu", localScopedPlugin)
+                                install(globalScopedPlugin)
+                            }
+
+                            @Get
+                            suspend fun main(call: ApplicationCall) {
+                                call.respond(HttpStatusCode.OK, "hello world!")
+                            }
+
+                            @Post("/uwu")
+                            suspend fun uwu(call: ApplicationCall) {
+                                val body by call.body<String>()
+                                call.respond(HttpStatusCode.OK, body)
+                            }
+                        }
+                    )
+                }
+
+                val res1 = client.get("/api")
+                res1 shouldHaveStatus HttpStatusCode.OK
+                res1 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res1.body<String>() shouldBe "hello world!"
+
+                val res3 = client.post("/api/uwu") {
+                    setBody("owo da uwu")
+                }
+
+                res3 shouldHaveStatus HttpStatusCode.OK
+                res3 shouldNotHaveStatus HttpStatusCode.BadRequest
+                res3.body<String>() shouldBe "owo da uwu"
+            }
+        }
     }
 })

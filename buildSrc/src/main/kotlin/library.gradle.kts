@@ -82,7 +82,21 @@ spotless {
     }
 }
 
+val fullPath = path.substring(1).replace(':', '-')
+// transforms :core -> core
+
 tasks {
+    withType<Jar> {
+        archiveFileName by "ktor-routing-$fullPath-$VERSION.jar"
+        manifest {
+            attributes(
+                "Implementation-Version" to "$VERSION",
+                "Implementation-Vendor" to "Noelware, LLC. [team@noelware.org]",
+                "Implementation-Title" to "ktor-routing"
+            )
+        }
+    }
+
     withType<KotlinCompile> {
         kotlinOptions.jvmTarget = JAVA_VERSION.toString()
         kotlinOptions.javaParameters = true

@@ -21,16 +21,17 @@
  * SOFTWARE.
  */
 
-plugins {
-    `library-publishing`
-    library
-}
+package org.noelware.ktor.endpoints
 
-dependencies {
-    api("io.ktor:ktor-server-websockets:2.1.1")
-    api("io.ktor:ktor-server-core:2.1.1")
+import org.noelware.ktor.annotations.ExperimentalApi
 
-    testImplementation("io.kotest.extensions:kotest-assertions-ktor:1.0.3")
-    testImplementation("io.ktor:ktor-server-test-host:2.1.1")
-    testImplementation("org.slf4j:slf4j-simple:2.0.2")
-}
+/**
+ * Represents an endpoint that can be represented as a WebSocket connection.
+ */
+@ExperimentalApi
+annotation class WebSocket(
+    /**
+     * The path that is used to identify this endpoint.
+     */
+    val path: String = "/"
+)

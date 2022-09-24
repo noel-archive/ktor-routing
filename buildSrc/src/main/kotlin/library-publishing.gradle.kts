@@ -28,8 +28,8 @@ import java.util.Properties
 
 plugins {
     id("org.jetbrains.dokka")
-    kotlin("jvm")
     `maven-publish`
+    kotlin("jvm")
 }
 
 // Get the `publishing.properties` file from the `gradle/` directory

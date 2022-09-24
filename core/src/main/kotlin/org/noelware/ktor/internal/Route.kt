@@ -25,6 +25,7 @@ package org.noelware.ktor.internal
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.websocket.*
 import org.noelware.ktor.endpoints.AbstractEndpoint
 import kotlin.reflect.KCallable
 import kotlin.reflect.full.callSuspend
@@ -36,16 +37,10 @@ import io.ktor.server.routing.Route as KtorRoute
 internal class Route(
     val path: String,
     val method: List<HttpMethod> = listOf(HttpMethod.Get),
+    val isWebSocketRoute: Boolean = false,
     private val runner: KCallable<*>,
     private val parent: AbstractEndpoint
 ) {
-    constructor(path: String, method: HttpMethod, runner: KCallable<*>, parent: AbstractEndpoint): this(
-        path,
-        listOf(method),
-        runner,
-        parent
-    )
-
     val plugins: MutableList<Pair<Plugin<KtorRoute, *, *>, Any.() -> Unit>> = mutableListOf()
 
     @Suppress("UNCHECKED_CAST")
@@ -62,4 +57,7 @@ internal class Route(
 
     suspend fun run(call: ApplicationCall): Any? =
         if (runner.isSuspend) runner.callSuspend(parent, call) else runner.call(parent, call)
+
+    suspend fun websocketCall(session: DefaultWebSocketServerSession): Any? =
+        if (runner.isSuspend) runner.callSuspend(parent, session) else runner.call(parent, session)
 }

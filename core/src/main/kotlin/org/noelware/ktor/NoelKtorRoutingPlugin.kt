@@ -27,80 +27,9 @@ import dev.floofy.utils.slf4j.logging
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
+import io.ktor.server.websocket.*
 import org.noelware.ktor.annotations.ExperimentalApi
-import org.noelware.ktor.endpoints.AbstractEndpoint
-import org.noelware.ktor.loader.IEndpointLoader
 import org.noelware.ktor.loader.ListBasedLoader
-
-/**
- * Represents a caller function.
- * @param T The result type
- * @param E The exception type
- */
-typealias DataResponseCallee<T, E> = suspend (ApplicationCall, T, E?) -> Unit
-
-@KtorDsl
-class NoelKtorRoutingConfiguration {
-    internal var endpoints = mutableListOf<AbstractEndpoint>()
-    internal var endpointLoader: IEndpointLoader? = null
-    internal var dataResponseCallee: DataResponseCallee<Result<*>, Throwable>? = null
-
-    /**
-     * If the library should support handling [kotlin.Result][kotlin.Result] objects if returned
-     * from any endpoint method.
-     */
-    @ExperimentalApi
-    var supportKotlinResult: Boolean = false
-
-    /**
-     * Registers a new [IEndpointLoader] to use to load all the routes.
-     * @param loader The loader to use
-     * @return this [configuration object][NoelKtorRoutingConfiguration] to chain methods.
-     */
-    fun endpointLoader(loader: IEndpointLoader): NoelKtorRoutingConfiguration {
-        if (endpointLoader != null) {
-            throw IllegalStateException("An endpoint loader is already injected!")
-        }
-
-        endpointLoader = loader
-        return this
-    }
-
-    /**
-     * Registers a list of [endpoints][AbstractEndpoint] to this configuration object.
-     * @param _endpoints The endpoints to register at runtime
-     * @return this [configuration object][NoelKtorRoutingConfiguration] to chain methods.
-     */
-    fun endpoints(vararg _endpoints: AbstractEndpoint): NoelKtorRoutingConfiguration {
-        endpoints += _endpoints
-        return this
-    }
-
-    /**
-     * Sets the [DataResponseCallee] to when [kotlin.Result][kotlin.Result] is supported when
-     * returned by any endpoint method. This can be only added if [supportKotlinResult] is
-     * `true`, otherwise you're fine by not using this. It is also recommended to use this
-     * method so the plugin knows how to handle the result, otherwise it'll throw away
-     * the result.
-     *
-     * @param callee The caller function to use
-     * @return this [configuration][NoelKtorRoutingConfiguration] to chain methods
-     * @since 0.3-beta (30.06.22)
-     */
-    @ExperimentalApi
-    @Suppress("UNCHECKED_CAST")
-    fun dataResponse(callee: DataResponseCallee<Result<Any>, Exception?>): NoelKtorRoutingConfiguration {
-        check(supportKotlinResult) { "You must enable the experimental `supportKotlinResult` property before using this method." }
-
-        if (dataResponseCallee != null) {
-            throw IllegalStateException("`dataResponseCallee` was already added.")
-        }
-
-        dataResponseCallee = callee as DataResponseCallee<Result<*>, Throwable>
-        return this
-    }
-}
 
 /**
  * The plugin to register into your Ktor application.
@@ -131,41 +60,54 @@ val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApp
     for (endpoint in newEndpointMap) {
         log.debug("Found ${endpoint::class} to register!")
         for (route in endpoint.routes) {
-            log.debug("Found route ${route.path} with methods [${route.method.joinToString(", ") { it.value }}] to register!")
-            for (method in route.method) {
-                routing.route(route.path, method) {
+            if (route.isWebSocketRoute) {
+                log.debug("Found WebSocket route ${route.path} to register!")
+                val keyPair = Pair(route.path, HttpMethod.parse("Connect"))
+                if (alreadyRegistered.contains(keyPair)) {
+                    log.warn("WebSocket route ${route.path} was already registered! Skipping...")
+                    continue
+                }
+
+                alreadyRegistered.add(keyPair)
+                routing.webSocket("${if (pluginConfig.basePrefix == "/") "" else pluginConfig.basePrefix.removeSuffix("/")}/${route.path.removePrefix("/")}".removeSuffix("/"), null) {
+                    route.websocketCall(this)
+                }
+            } else {
+                log.debug("Found route ${route.path} with methods [${route.method.joinToString(", ") { it.value }}] to register!")
+                for (method in route.method) {
                     val keyPair = Pair(route.path, method)
                     if (alreadyRegistered.contains(keyPair)) {
                         log.warn("Route ${method.value} ${route.path} was already registered! Skipping...")
-                        return@route
+                        continue
                     }
 
                     alreadyRegistered.add(keyPair)
+                    routing.route("${if (pluginConfig.basePrefix == "/") "" else pluginConfig.basePrefix.removeSuffix("/")}/${route.path.removePrefix("/")}".removeSuffix("/"), method) {
+                        // Install all the global plugins
+                        for ((plugin, configure) in endpoint.plugins) {
+                            log.debug("Installing global-scoped plugin ${plugin.key.name} on route ${method.value} ${route.path}!")
+                            if (pluginRegistry.contains(plugin.key)) {
+                                log.warn("Plugin ${plugin.key.name} was already registered on route ${method.value} ${route.path}! Skipping.")
+                                continue
+                            }
 
-                    // Install all the global plugins
-                    for ((plugin, configure) in endpoint.plugins) {
-                        log.debug("Installing global-scoped plugin ${plugin.key.name} on route ${method.value} ${route.path}!")
-                        if (pluginRegistry.contains(plugin.key)) {
-                            log.warn("Plugin ${plugin.key.name} was already registered on route ${method.value} ${route.path}! Skipping.")
-                            continue
+                            install(plugin, configure)
                         }
 
-                        install(plugin, configure)
-                    }
+                        // Install all the local route-scoped plugins
+                        for ((plugin, configure) in route.plugins) {
+                            log.debug("Installing local-scoped plugin ${plugin.key.name} on route ${method.value} ${route.path}!")
+                            if (pluginRegistry.contains(plugin.key)) {
+                                log.warn("Plugin ${plugin.key.name} was already registered on route ${method.value} ${route.path}! Skipping.")
+                                continue
+                            }
 
-                    // Install all the local route-scoped plugins
-                    for ((plugin, configure) in route.plugins) {
-                        log.debug("Installing local-scoped plugin ${plugin.key.name} on route ${method.value} ${route.path}!")
-                        if (pluginRegistry.contains(plugin.key)) {
-                            log.warn("Plugin ${plugin.key.name} was already registered on route ${method.value} ${route.path}! Skipping.")
-                            continue
+                            install(plugin, configure)
                         }
 
-                        install(plugin, configure)
-                    }
-
-                    handle {
-                        handleRouteCall(this@createApplicationPlugin.pluginConfig, call, route)
+                        handle {
+                            handleRouteCall(this@createApplicationPlugin.pluginConfig, call, route)
+                        }
                     }
                 }
             }

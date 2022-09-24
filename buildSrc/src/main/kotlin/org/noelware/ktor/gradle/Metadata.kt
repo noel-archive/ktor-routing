@@ -27,5 +27,5 @@ import dev.floofy.utils.gradle.ReleaseType
 import dev.floofy.utils.gradle.Version
 import org.gradle.api.JavaVersion
 
-val VERSION = Version(0, 3, 1, 0, ReleaseType.Beta)
+val VERSION = Version(0, 4, 0, 0, ReleaseType.Beta)
 val JAVA_VERSION = JavaVersion.VERSION_17
