@@ -31,6 +31,6 @@ dependencies {
     api("io.ktor:ktor-server-core:2.1.2")
 
     testImplementation("io.kotest.extensions:kotest-assertions-ktor:1.0.3")
-    testImplementation("io.ktor:ktor-server-test-host:2.1.1")
+    testImplementation("io.ktor:ktor-server-test-host:2.1.2")
     testImplementation("org.slf4j:slf4j-simple:2.0.3")
 }
