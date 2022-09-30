@@ -27,7 +27,7 @@ plugins {
 }
 
 dependencies {
-    api("io.ktor:ktor-server-websockets:2.1.1")
+    api("io.ktor:ktor-server-websockets:2.1.2")
     api("io.ktor:ktor-server-core:2.1.2")
 
     testImplementation("io.kotest.extensions:kotest-assertions-ktor:1.0.3")
