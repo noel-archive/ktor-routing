@@ -6,10 +6,18 @@
     <link href="images/logo-icon.svg" rel="icon" type="image/svg">
     <script>var pathToRoot = "";</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-const savedDarkMode = storage ? JSON.parse(storage) : false
-if(savedDarkMode === true){
-    document.getElementsByTagName("html")[0].classList.add("theme-dark")
-}</script>
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
 <script type="text/javascript" src="scripts/sourceset_dependencies.js" async="async"></script>
 <link href="styles/style.css" rel="Stylesheet">
 <link href="styles/jetbrains-mono.css" rel="Stylesheet">
@@ -21,6 +29,7 @@ if(savedDarkMode === true){
 <script type="text/javascript" src="scripts/platform-content-handler.js" async="async"></script>
 <script type="text/javascript" src="scripts/main.js" defer="defer"></script>
 <script type="text/javascript" src="scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
 </head>
 <body>
 <div class="navigation-wrapper" id="navigation-wrapper">
@@ -63,7 +72,7 @@ if(savedDarkMode === true){
       </ul>
       <h2 class=""> Example</h2>
       <div class="sample-container">
-        <pre><code class="block lang-kotlin" theme="idea">@Serializable<br>class RequestBody(val id: Int, val email: String)<br><br>class MyEndpoint: AbstractEndpoint() {<br>  init {<br>    install(SomeRoutingPlugin) {<br>      // type-safe config<br>    }<br>  }<br><br>  @Get<br>  suspend fun get(call: ApplicationCall) {<br>    call.respond(HttpStatusCode.OK, &quot;Hello, world!&quot;)<br>  }<br><br>  @Post<br>  suspend fun post(call: ApplicationCall) {<br>    val body by call.body&lt;RequestBody&gt;()<br>    call.respond(HttpStatusCode.OK, &quot;Hello user with ID ${body.id} and email ${body.email}!&quot;)<br>  }<br>}<br><br>suspend fun main(args: Array&lt;String&gt;) {<br>  val server = embeddedServer(Netty, port = 9090) {<br>    module {<br>      // We need this to be enabled. :(<br>      routing {}<br><br>      install(NoelKtorRouting) {<br>        loader(ReflectionBasedLoader(&quot;org.noelware.ktor.tests&quot;))<br>        endpoints += MyEndpoint()<br>      }<br>    }<br>  }<br>}</code></pre>
+        <pre><code class="block lang-kotlin" theme="idea">@Serializable<br>class RequestBody(val id: Int, val email: String)<br><br>class MyEndpoint: AbstractEndpoint() {<br>  init {<br>    install(SomeRoutingPlugin) {<br>      // type-safe config<br>    }<br>  }<br><br>  @Get<br>  suspend fun get(call: ApplicationCall) {<br>    call.respond(HttpStatusCode.OK, &quot;Hello, world!&quot;)<br>  }<br>  <br>  @Post<br>  suspend fun post(call: ApplicationCall) {<br>    val body by call.body&lt;RequestBody&gt;()<br>    call.respond(HttpStatusCode.OK, &quot;Hello user with ID ${body.id} and email ${body.email}!&quot;)<br>  }<br>}<br><br>suspend fun main(args: Array&lt;String&gt;) {<br>  val server = embeddedServer(Netty, port = 9090) {<br>    module {<br>      // We need this to be enabled. :(<br>      routing {}<br>      <br>      install(NoelKtorRouting) {<br>        loader(ReflectionBasedLoader(&quot;org.noelware.ktor.tests&quot;))<br>        endpoints += MyEndpoint()<br>      }<br>    }<br>  }<br>}</code></pre>
 <span class="top-right-position"><span class="copy-icon"></span>
           <div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div>
         </span></div>
