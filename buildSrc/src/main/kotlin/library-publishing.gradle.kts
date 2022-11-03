@@ -63,8 +63,11 @@ val snapshotRelease: Boolean = run {
     env == "true"
 }
 
+val fullName = path.substring(1).replace(':', '-')
 val sourcesJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("sources")
+    archiveBaseName by "ktor-routing"
+    archiveClassifier by "sources"
+
     from(sourceSets.main.get().allSource)
 }
 
@@ -72,7 +75,9 @@ val dokkaJar by tasks.registering(Jar::class) {
     group = JavaBasePlugin.DOCUMENTATION_GROUP
     description = "Assemble Kotlin documentation with Dokka"
 
-    archiveClassifier.set("javadoc")
+    archiveBaseName by "ktor-routing"
+    archiveClassifier by "javadoc"
+
     from(tasks.dokkaHtml)
     dependsOn(tasks.dokkaHtml)
 }
@@ -82,7 +87,7 @@ publishing {
         create<MavenPublication>("ktor") {
             from(components["kotlin"])
 
-            artifactId = project.name
+            artifactId = "ktor-routing-$fullName"
             groupId = "org.noelware.ktor"
             version = "$VERSION"
 

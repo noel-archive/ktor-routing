@@ -87,7 +87,6 @@ val fullPath = path.substring(1).replace(':', '-')
 
 tasks {
     withType<Jar> {
-        archiveFileName by "ktor-routing-$fullPath-$VERSION.jar"
         manifest {
             attributes(
                 "Implementation-Version" to "$VERSION",
