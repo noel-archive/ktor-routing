@@ -2,11 +2,8 @@
 > *Extension to Ktor’s routing system to add object-oriented routing and much more. 💜*
 
 ## Why?
-This extension library was created to reduce the amount of boilerplate to install routing to Noelware's products and services. We use **Ktor** for our major platforms like [Tsubaki](https://github.com/arisuland/tsubaki), [charted-server](https://github.com/charted-dev/charted), [analytics-server](https://github.com/Noelware/analytics-server) and much more.
-
-## Features
-- Reflection loading - Since we have interfaces to extend routing, this adds loading with [Koin](https://insert-koin.io), Kodein, and with the **Reflections** library.
-- OOP-based routing - By "OOP-based," I mean it adds a `AbstractEndpoint` interface to create routing with annotations.
+This extension library was created to reduce the amount of boilerplate to install routing to Noelware's products and services.
+We use **Ktor** for our major platforms like [charted-server](https://github.com/charted-dev/charted) and much more.
 
 ## Example
 ```kotlin

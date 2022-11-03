@@ -60,16 +60,7 @@
         <p class="paragraph"><i>Extension to Ktor’s routing system to add object-oriented routing and much more. 💜</i></p>
       </blockquote>
       <h2 class=""> Why?</h2>
-      <p class="paragraph">This extension library was created to reduce the amount of boilerplate to install routing to Noelware's products and services. We use <strong>Ktor</strong> for our major platforms like <a href="https://github.com/arisuland/tsubaki">Tsubaki</a>, <a href="https://github.com/charted-dev/charted">charted-server</a>, <a href="https://github.com/Noelware/analytics-server">analytics-server</a> and much more.</p>
-      <h2 class=""> Features</h2>
-      <ul>
-        <li>
-          <p class="paragraph">Reflection loading - Since we have interfaces to extend routing, this adds loading with <a href="https://insert-koin.io">Koin</a>, Kodein, and with the <strong>Reflections</strong> library.</p>
-        </li>
-        <li>
-          <p class="paragraph">OOP-based routing - By &quot;OOP-based,&quot; I mean it adds a <code class="lang-kotlin">AbstractEndpoint</code> interface to create routing with annotations.</p>
-        </li>
-      </ul>
+      <p class="paragraph">This extension library was created to reduce the amount of boilerplate to install routing to Noelware's products and services. We use <strong>Ktor</strong> for our major platforms like <a href="https://github.com/charted-dev/charted">charted-server</a> and much more.</p>
       <h2 class=""> Example</h2>
       <div class="sample-container">
         <pre><code class="block lang-kotlin" theme="idea">@Serializable<br>class RequestBody(val id: Int, val email: String)<br><br>class MyEndpoint: AbstractEndpoint() {<br>  init {<br>    install(SomeRoutingPlugin) {<br>      // type-safe config<br>    }<br>  }<br><br>  @Get<br>  suspend fun get(call: ApplicationCall) {<br>    call.respond(HttpStatusCode.OK, &quot;Hello, world!&quot;)<br>  }<br>  <br>  @Post<br>  suspend fun post(call: ApplicationCall) {<br>    val body by call.body&lt;RequestBody&gt;()<br>    call.respond(HttpStatusCode.OK, &quot;Hello user with ID ${body.id} and email ${body.email}!&quot;)<br>  }<br>}<br><br>suspend fun main(args: Array&lt;String&gt;) {<br>  val server = embeddedServer(Netty, port = 9090) {<br>    module {<br>      // We need this to be enabled. :(<br>      routing {}<br>      <br>      install(NoelKtorRouting) {<br>        loader(ReflectionBasedLoader(&quot;org.noelware.ktor.tests&quot;))<br>        endpoints += MyEndpoint()<br>      }<br>    }<br>  }<br>}</code></pre>
