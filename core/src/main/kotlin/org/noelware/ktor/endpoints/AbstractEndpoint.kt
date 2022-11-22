@@ -36,7 +36,7 @@ import org.noelware.ktor.internal.Route as NoelRoute
  * @param paths A list of HTTP resources that will be subsequently merged within the routing plugin.
  */
 @OptIn(ExperimentalApi::class)
-open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
+open class AbstractEndpoint(private val paths: List<String> = listOf("/")) {
     private val log = LoggerFactory.getLogger(this::class.java)
     internal val routes: MutableList<NoelRoute> = mutableListOf()
     internal val plugins = mutableListOf<Pair<Plugin<Route, *, *>, Any.() -> Unit>>()
@@ -56,8 +56,9 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
         val postMethods = this::class.members.filter { it.findAnnotation<Post>() != null }
         val deleteMethods = this::class.members.filter { it.findAnnotation<Delete>() != null }
         val websocketRoutes = this::class.members.filter { it.findAnnotation<WebSocket>() != null }
+        val headRoutes = this::class.members.filter { it.findAnnotation<Head>() != null }
 
-        log.debug("Found ${httpMethods.size} multiplexed routes, ${getMethods.size} GET routes, ${putMethods.size} PUT routes, ${patchMethods.size} PATCH routes, ${postMethods.size} POST routes, and ${deleteMethods.size} DELETE routes, and ${websocketRoutes.size} WebSocket routes!")
+        log.debug("Found ${httpMethods.size} multiplexed routes, ${getMethods.size} GET routes, ${headRoutes.size} HEAD routes, ${putMethods.size} PUT routes, ${patchMethods.size} PATCH routes, ${postMethods.size} POST routes, and ${deleteMethods.size} DELETE routes, and ${websocketRoutes.size} WebSocket routes!")
         for (data in websocketRoutes) {
             val meta = data.findAnnotation<WebSocket>() ?: continue
             for (path in paths) {
@@ -86,6 +87,24 @@ open class AbstractEndpoint(val paths: List<String> = listOf("/")) {
                         )
                     )
                 }
+            }
+        }
+
+        for (method in headRoutes) {
+            for (path in paths) {
+                val meta = method.findAnnotation<Head>() ?: continue
+                val p = mergePaths(path, meta.path)
+                log.debug("Registering route => HEAD $p")
+
+                routes.add(
+                    NoelRoute(
+                        p,
+                        listOf(HttpMethod.Head),
+                        false,
+                        method,
+                        this
+                    )
+                )
             }
         }
 
