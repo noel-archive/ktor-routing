@@ -44,7 +44,7 @@ repositories {
 
 dependencies {
     // SLF4J for logging
-    api("org.slf4j:slf4j-api:2.0.5")
+    api("org.slf4j:slf4j-api:2.0.6")
 
     // Noel Utils
     implementation("dev.floofy.commons:slf4j:2.4.0")
