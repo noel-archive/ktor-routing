@@ -37,7 +37,7 @@ dependencies {
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.7.20")
     implementation(kotlin("gradle-plugin", version = "1.8.0"))
     implementation("io.kotest:kotest-gradle-plugin:0.3.9")
-    implementation("dev.floofy.commons:gradle:2.4.1")
+    implementation("dev.floofy.commons:gradle:2.4.2")
     implementation(gradleApi())
 }
 
