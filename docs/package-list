@@ -5,8 +5,8 @@ module:core
 org.noelware.ktor
 org.noelware.ktor.annotations
 org.noelware.ktor.endpoints
-org.noelware.ktor.internal
 org.noelware.ktor.loader
+org.noelware.ktor.plugin
 module:loader-koin
 org.noelware.ktor.loader.koin
 module:loader-reflection

@@ -1,6 +1,6 @@
 /*
  * 📭 ktor-routing: Extensions to Ktor’s routing system to add object-oriented routing and much more.
- * Copyright (c) 2022 Noelware <team@noelware.org>
+ * Copyright (c) 2022-2023 Noelware <team@noelware.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,8 @@
  * SOFTWARE.
  */
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.noelware.ktor.gradle.*
 import dev.floofy.utils.gradle.*
@@ -29,7 +31,6 @@ import java.net.URL
 plugins {
     id("com.diffplug.spotless")
     id("org.jetbrains.dokka")
-    id("io.kotest")
     kotlin("jvm")
 }
 
@@ -49,14 +50,19 @@ dependencies {
     // Noel Utils
     implementation("dev.floofy.commons:slf4j:2.4.2")
 
-    // Testing utilities
-    testImplementation("io.kotest:kotest-runner-junit5:5.5.4")
-    testImplementation("io.kotest:kotest-assertions-core:5.5.4")
-    testImplementation("io.kotest:kotest-property:5.5.4")
+    // Testing Utilities
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+    testImplementation("org.slf4j:slf4j-simple:2.0.6")
+    testImplementation(kotlin("test"))
 
     if (project.name.contains("loader-")) {
         api(project(":core"))
     }
+}
+
+kotlin {
+    explicitApi()
 }
 
 spotless {
@@ -102,22 +108,36 @@ tasks {
         kotlinOptions.freeCompilerArgs += listOf("-opt-in=kotlin.RequiresOptIn")
     }
 
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+        outputs.upToDateWhen { false }
+        maxParallelForks = Runtime.getRuntime().availableProcessors()
+        failFast = true // kill gradle if a test fails
+
+        testLogging {
+            events.addAll(listOf(TestLogEvent.PASSED, TestLogEvent.FAILED, TestLogEvent.SKIPPED))
+            showStandardStreams = true
+            exceptionFormat = TestExceptionFormat.FULL
+        }
+    }
+
     dokkaHtml {
         dokkaSourceSets {
             configureEach {
                 platform.set(org.jetbrains.dokka.Platform.jvm)
-                jdkVersion.set(17)
+                jdkVersion.set(JAVA_VERSION.majorVersion.toInt())
                 //includes.from("DokkaDescription.md")
 
                 sourceLink {
-                    localDirectory.set(file("src/main/kotlin"))
-                    remoteUrl.set(uri("https://github.com/Noelware/ktor-routing/tree/master/${project.name}/src/main/kotlin").toURL())
-                    remoteLineSuffix.set("#L")
+                    remoteLineSuffix by "#L"
+                    localDirectory by file("src/main/kotlin")
+                    remoteUrl by uri("https://github.com/Noelware/ktor-routing/tree/master/${project.name}/src/main/kotlin").toURL()
                 }
 
                 // Link to Ktor
                 externalDocumentationLink {
-                    url by URL("https://api.ktor.io/")
+                    packageListUrl by uri("https://api.ktor.io/package-list").toURL()
+                    url by uri("https://api.ktor.io").toURL()
                 }
             }
         }

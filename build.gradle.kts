@@ -1,6 +1,6 @@
 /*
  * 📭 ktor-routing: Extensions to Ktor’s routing system to add object-oriented routing and much more.
- * Copyright (c) 2022 Noelware <team@noelware.org>
+ * Copyright (c) 2022-2023 Noelware <team@noelware.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ plugins {
     `maven-publish`
 }
 
-val DOKKA_OUTPUT = "${rootProject.projectDir}/docs"
+val dokkaDocsOutputDir = "${rootProject.projectDir}/docs"
 group = "org.noelware"
 version = "$VERSION"
 
@@ -46,6 +46,6 @@ tasks {
 
     dokkaHtmlMultiModule.configure {
         includes.from("README.md")
-        outputDirectory.set(file(DOKKA_OUTPUT))
+        outputDirectory.set(file(dokkaDocsOutputDir))
     }
 }

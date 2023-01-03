@@ -27,10 +27,9 @@ plugins {
 }
 
 dependencies {
-    api("io.ktor:ktor-server-websockets:2.2.1")
+    implementation("io.ktor:ktor-server-websockets:2.2.1")
     api("io.ktor:ktor-server-core:2.2.1")
 
-    testImplementation("io.kotest.extensions:kotest-assertions-ktor:1.0.3")
     testImplementation("io.ktor:ktor-server-test-host:2.2.1")
     testImplementation("org.slf4j:slf4j-simple:2.0.6")
 }

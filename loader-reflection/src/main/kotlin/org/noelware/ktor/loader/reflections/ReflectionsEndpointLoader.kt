@@ -1,6 +1,6 @@
 /*
  * 📭 ktor-routing: Extensions to Ktor’s routing system to add object-oriented routing and much more.
- * Copyright (c) 2022 Noelware <team@noelware.org>
+ * Copyright (c) 2022-2023 Noelware <team@noelware.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,10 +32,10 @@ import org.reflections.util.ConfigurationBuilder
  * [Endpoint loader][IEndpointLoader] based off the Reflections library to load without
  * any dependency injection.
  */
-class ReflectionsEndpointLoader(builder: ConfigurationBuilder.() -> Unit = {}): IEndpointLoader {
+public class ReflectionsEndpointLoader(builder: ConfigurationBuilder.() -> Unit = {}): IEndpointLoader {
     private val reflections = Reflections(ConfigurationBuilder().apply(builder))
 
-    constructor(packageName: String): this({
+    public constructor(packageName: String): this({
         forPackage(packageName)
     })
 
