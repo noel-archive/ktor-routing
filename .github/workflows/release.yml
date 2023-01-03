@@ -50,7 +50,7 @@ jobs:
       - name: Check if project can be compiled
         run: ./gradlew compileKotlin --no-daemon
 
-      - name: Release to new S3 instance
+      - name: Release!
         run: ./gradlew publish -Dorg.gradle.s3.endpoint=${{ secrets.S3_ENDPOINT }}
         env:
           NOELWARE_PUBLISHING_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
