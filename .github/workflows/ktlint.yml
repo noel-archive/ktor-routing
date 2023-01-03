@@ -44,13 +44,13 @@ on:
       - 'renovate.json'
 
   pull_request:
+    types: [opened, synchronize]
     branches:
       - 'feature/**'
       - 'issue/gh-**'
       - master
 
     paths-ignore:
-      - '.github/**'
       - '.husky/**'
       - '.vscode/**'
       - 'assets/**'
@@ -64,11 +64,11 @@ on:
       - 'renovate.json'
 jobs:
   ktlint:
-    name: Linting
+    name: Linting and Unit Testing (Java ${{matrix.java-version}})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [17, 18]
+        java-version: [17, 19]
     steps:
       - name: Checks out the repository
         uses: actions/checkout@v3
@@ -76,7 +76,7 @@ jobs:
       - name: Sets up Java ${{ matrix.java-version }}
         uses: actions/setup-java@v3
         with:
-          distribution: temurin # Eclipse Temurin is <3
+          distribution: temurin
           java-version: ${{ matrix.java-version }}
 
       - name: Setup Gradle
@@ -92,4 +92,4 @@ jobs:
         run: ./gradlew compileKotlin --no-daemon
 
       - name: Unit test the project
-        run: ./gradlew kotest --no-daemon
+        run: ./gradlew test --no-daemon
