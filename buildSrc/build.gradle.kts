@@ -23,7 +23,6 @@
 
 plugins {
     `kotlin-dsl`
-    groovy
 }
 
 repositories {
@@ -33,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.12.0")
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:6.12.1")
     implementation("org.jetbrains.dokka:dokka-gradle-plugin:1.7.20")
     implementation("dev.floofy.commons:gradle:2.4.2")
     implementation(kotlin("gradle-plugin", "1.8.0"))

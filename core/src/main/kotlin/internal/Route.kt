@@ -47,7 +47,7 @@ internal class Route(
     fun <C: Any, B: Any> install(plugin: Plugin<io.ktor.server.routing.Route, C, B>, configure: C.() -> Unit = {}) {
         val plu = Pair(
             plugin,
-            configure as Any.() -> Unit
+            configure as Any.() -> Unit,
         )
 
         if (!plugins.contains(plu)) {

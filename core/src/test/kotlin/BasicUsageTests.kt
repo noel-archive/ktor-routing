@@ -109,7 +109,7 @@ class BasicUsageTests {
                         val body: String = call.receive()
                         call.respond(HttpStatusCode.OK, body)
                     }
-                }
+                },
             )
         }
 

@@ -92,8 +92,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                             methods,
                             false,
                             method,
-                            this
-                        )
+                            this,
+                        ),
                     )
                 }
             }
@@ -111,8 +111,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                         listOf(HttpMethod.Head),
                         false,
                         method,
-                        this
-                    )
+                        this,
+                    ),
                 )
             }
         }
@@ -129,8 +129,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                         listOf(HttpMethod.Get),
                         false,
                         method,
-                        this
-                    )
+                        this,
+                    ),
                 )
             }
         }
@@ -147,8 +147,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                         listOf(HttpMethod.Put),
                         false,
                         method,
-                        this
-                    )
+                        this,
+                    ),
                 )
             }
         }
@@ -165,8 +165,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                         listOf(HttpMethod.Post),
                         false,
                         method,
-                        this
-                    )
+                        this,
+                    ),
                 )
             }
         }
@@ -183,8 +183,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                         listOf(HttpMethod.Delete),
                         false,
                         method,
-                        this
-                    )
+                        this,
+                    ),
                 )
             }
         }
@@ -201,8 +201,8 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
                         listOf(HttpMethod.Patch),
                         false,
                         method,
-                        this
-                    )
+                        this,
+                    ),
                 )
             }
         }

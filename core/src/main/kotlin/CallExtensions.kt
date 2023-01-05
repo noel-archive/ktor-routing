@@ -39,7 +39,7 @@ import kotlin.properties.ReadOnlyProperty
 @Deprecated(
     "Please use the `receive` method instead. You will need to replace the ReadOnlyProperty reference with a variable reference.",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("this.receive()", "io.ktor.server.request.receive")
+    replaceWith = ReplaceWith("this.receive()", "io.ktor.server.request.receive"),
 )
 public inline fun <reified T: Any> ApplicationCall.body(): ReadOnlyProperty<Any?, T> = ReadOnlyProperty { _, _ ->
     runBlocking {

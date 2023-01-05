@@ -106,7 +106,10 @@ public class NoelKtorRouting private constructor(private val config: Configurati
         val loader = config.endpointLoader ?: ListBasedLoader(config.endpoints)
         log.debug("Using endpoint loader => ${loader::class.simpleName}")
 
-        val endpointsToRegister = loader.load()
+        val endpointsToRegister = loader.load().toMutableList()
+        if (config.endpoints.isNotEmpty()) {
+            endpointsToRegister += config.endpoints
+        }
 
         // Keep a cache of what was already registered since it will attempt
         // to register duplicate entries.

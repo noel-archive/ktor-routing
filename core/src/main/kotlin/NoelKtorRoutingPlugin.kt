@@ -40,10 +40,10 @@ import org.noelware.ktor.loader.ListBasedLoader
  * }
  * ```
  */
-@Deprecated("Please switch to org.noelware.ktor.plugin.NoelKtorRouting instead. This will be removed in v0.7-beta", level = DeprecationLevel.WARNING)
+@Deprecated("Please switch to org.noelware.ktor.plugin.NoelKtorRouting instead. This will be removed in v0.6-beta", level = DeprecationLevel.WARNING)
 public val NoelKtorRouting: ApplicationPlugin<NoelKtorRoutingConfiguration> = createApplicationPlugin(
     "NoelKtorRouting",
-    ::NoelKtorRoutingConfiguration
+    ::NoelKtorRoutingConfiguration,
 ) {
     val routing = application.pluginOrNull(Routing) ?: error("Missing `routing {}` plugin in application module")
     val log by logging("org.noelware.ktor.routing.NoelKtorRoutingPlugin")
