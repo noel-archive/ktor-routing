@@ -288,6 +288,27 @@ public open class AbstractEndpoint(private val paths: List<String> = listOf("/")
     }
 
     /**
+     * Installs a Route [plugin] with the specified [HttpMethod].
+     * @param method [HttpMethod] to install on
+     * @param plugin [Plugin] to install
+     * @param configure configure method to configure the [plugin]
+     */
+    public fun <C: Any, B: Any> install(
+        method: HttpMethod,
+        plugin: Plugin<Route, C, B>,
+        configure: C.() -> Unit = {}
+    ): AbstractEndpoint {
+        log.debug("Installing plugin ${plugin.key.name} with all routes with method [${method.value}]")
+
+        val allRoutes = routes.filter { it.methods.contains(method) }
+        for (route in allRoutes) {
+            route.install(plugin, configure)
+        }
+
+        return this
+    }
+
+    /**
      * Installs a route plugin on a specific route AND [method][HttpMethod] that is installed on this [AbstractEndpoint].
      * @param method The HTTP method to use to find the route to install the plugin in.
      * @param route The route to install it on
