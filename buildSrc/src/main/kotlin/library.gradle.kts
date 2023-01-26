@@ -48,7 +48,7 @@ dependencies {
     api("org.slf4j:slf4j-api:2.0.6")
 
     // Noel Utils
-    implementation("dev.floofy.commons:slf4j:2.4.2")
+    implementation("dev.floofy.commons:slf4j:2.5.0")
 
     // Testing Utilities
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
