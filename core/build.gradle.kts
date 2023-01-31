@@ -28,7 +28,7 @@ plugins {
 
 dependencies {
     implementation("io.ktor:ktor-server-websockets:2.2.2")
-    api("io.ktor:ktor-server-core:2.2.2")
+    api("io.ktor:ktor-server-core:2.2.3")
 
     testImplementation("io.ktor:ktor-server-test-host:2.2.2")
     testImplementation("org.slf4j:slf4j-simple:2.0.6")
