@@ -22,7 +22,6 @@
  */
 
 plugins {
-    `library-publishing`
     library
 }
 

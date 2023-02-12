@@ -1,6 +1,6 @@
 /*
  * 📭 ktor-routing: Extensions to Ktor’s routing system to add object-oriented routing and much more.
- * Copyright (c) 2022-2023 Noelware <team@noelware.org>
+ * Copyright (c) 2022-2023 Noelware, LLC. <team@noelware.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,5 +27,5 @@ import dev.floofy.utils.gradle.ReleaseType
 import dev.floofy.utils.gradle.Version
 import org.gradle.api.JavaVersion
 
-val VERSION = Version(0, 5, 2, ReleaseType.Beta)
+val VERSION = Version(0, 6, 0, ReleaseType.Beta)
 val JAVA_VERSION = JavaVersion.VERSION_17

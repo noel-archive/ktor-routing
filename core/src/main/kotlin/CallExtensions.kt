@@ -1,6 +1,6 @@
 /*
  * 📭 ktor-routing: Extensions to Ktor’s routing system to add object-oriented routing and much more.
- * Copyright (c) 2022-2023 Noelware <team@noelware.org>
+ * Copyright (c) 2022-2023 Noelware, LLC. <team@noelware.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,23 +29,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import kotlinx.coroutines.runBlocking
-import kotlin.properties.ReadOnlyProperty
-
-/**
- * [ReadOnlyProperty] to transform the request body to [T].
- * @return this [ReadOnlyProperty] to get the body.
- */
-@Deprecated(
-    "Please use the `receive` method instead. You will need to replace the ReadOnlyProperty reference with a variable reference.",
-    level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("this.receive()", "io.ktor.server.request.receive"),
-)
-public inline fun <reified T: Any> ApplicationCall.body(): ReadOnlyProperty<Any?, T> = ReadOnlyProperty { _, _ ->
-    runBlocking {
-        this@body.receive()
-    }
-}
 
 /**
  * Returns the true, real IP if the application is running behind the proxy. If not, it'll

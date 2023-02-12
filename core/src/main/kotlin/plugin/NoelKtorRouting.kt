@@ -1,6 +1,6 @@
 /*
  * 📭 ktor-routing: Extensions to Ktor’s routing system to add object-oriented routing and much more.
- * Copyright (c) 2022-2023 Noelware <team@noelware.org>
+ * Copyright (c) 2022-2023 Noelware, LLC. <team@noelware.org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,15 +96,13 @@ public class NoelKtorRouting private constructor(private val config: Configurati
     }
 
     private fun install(pipeline: Application) {
-        log.info("Installing NoelKtorRouting into the base application!")
-
         val routing = pipeline.pluginOrNull(Routing) ?: run {
             log.warn("Routing plugin was not registered, so I registered it for you!")
             pipeline.routing {}
         }
 
         val loader = config.endpointLoader ?: ListBasedLoader(config.endpoints)
-        log.debug("Using endpoint loader => ${loader::class.simpleName}")
+        log.debug("Using endpoint loader [${loader::class.simpleName}]")
 
         val endpointsToRegister = loader.load().toMutableList()
         if (config.endpoints.isNotEmpty()) {
@@ -117,9 +115,9 @@ public class NoelKtorRouting private constructor(private val config: Configurati
 
         log.info("Now registering ${endpointsToRegister.size} endpoints to Ktor...")
         for (endpoint in endpointsToRegister) {
-            log.debug("Found endpoint class '${endpoint::class.simpleName}' to register with ${endpoint.routes.size} routes to register!")
+            log.trace("Found endpoint class '${endpoint::class.simpleName}' to register with ${endpoint.routes.size} routes to register!")
             for (route in endpoint.routes) {
-                log.debug("Loading route '${route.path}' with method [${route.methods.joinToString(", ") { it.value }}] (is websocket route: ${route.isWebSocketRoute})")
+                log.trace("Loading route '${route.path}' with method [${route.methods.joinToString(", ") { it.value }}] (is websocket route: ${route.isWebSocketRoute})")
                 if (route.isWebSocketRoute) {
                     if (!pipeline.pluginRegistry.contains(WebSockets.key)) {
                         throw IllegalStateException("You will need to enable the WebSockets plugin to use this feature")
@@ -133,7 +131,7 @@ public class NoelKtorRouting private constructor(private val config: Configurati
 
                     alreadyRegistered.add(keyPair)
                     routing.webSocket(toUrl(route.path)) {
-                        log.debug("Shooting and persisting WebSocket call [${route.path}]")
+                        log.trace("Shooting and persisting WebSocket call [${route.path}]")
                         route.websocketCall(this)
                     }
 

@@ -22,11 +22,11 @@
  */
 
 plugins {
-    `library-publishing`
     library
 }
 
 dependencies {
+    implementation("io.ktor:ktor-server-rate-limit:2.2.3")
     implementation("io.ktor:ktor-server-websockets:2.2.3")
     api("io.ktor:ktor-server-core:2.2.3")
 
